@@ -8,6 +8,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type OauthIntegration struct {
+	ID           pgtype.UUID
+	Provider     string
+	Email        string
+	AccessToken  string
+	RefreshToken string
+	TokenType    pgtype.Text
+	Expiry       pgtype.Timestamp
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+}
+
+type SyncState struct {
+	ID            pgtype.UUID
+	Provider      string
+	Email         string
+	LastMessageID pgtype.Text
+	UpdatedAt     pgtype.Timestamp
+}
+
 type Transaction struct {
 	ID           pgtype.UUID
 	Amount       float64

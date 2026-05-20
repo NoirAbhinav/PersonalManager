@@ -26,7 +26,7 @@ func (r *TransactionRepository) Create(
 	transaction *parsers.Transaction,
 ) error {
 
-	_, err := r.queries.CreateTransaction(
+	err := r.queries.CreateTransaction(
 		ctx,
 		sqlc.CreateTransactionParams{
 			Amount: transaction.Amount,
@@ -60,7 +60,12 @@ func (r *TransactionRepository) Create(
 		},
 	)
 
-	return err
+	if err != nil {
+
+		return err
+	}
+
+	return nil
 }
 
 func (r *TransactionRepository) GetAll(

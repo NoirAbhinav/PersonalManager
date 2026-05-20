@@ -36,6 +36,12 @@ func main() {
 	transactionRepository := repositories.NewTransactionRepository(
 		queries,
 	)
+	oathRepository := repositories.NewOAuthRepository(
+		queries,
+	)
+	syncStateRepository := repositories.NewSyncStateRepository(
+		queries,
+	)
 
 	// Initialize services
 	transactionService := services.NewTransactionService(
@@ -49,12 +55,22 @@ func main() {
 	authHandler := api.NewAuthHandler(
 		oauthConfig,
 		transactionRepository,
+		oathRepository,
+		syncStateRepository,
 	)
 
 	transactionHandler := api.NewTransactionHandler(
 		transactionService,
 	)
 
+	syncHandler := api.NewSyncHandler(
+		oauthConfig,
+
+		oathRepository,
+
+		transactionRepository,
+		syncStateRepository,
+	)
 	// Setup router
 	r := gin.Default()
 
@@ -82,6 +98,11 @@ func main() {
 		transactionHandler.GetTransactions,
 	)
 
+	r.POST(
+		"/sync/gmail",
+		syncHandler.SyncGmail,
+	)
+
 	// Start server
 	log.Printf("server running on port %s", cfg.Port)
 
@@ -90,4 +111,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }

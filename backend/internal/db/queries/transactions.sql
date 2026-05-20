@@ -1,4 +1,4 @@
--- name: CreateTransaction :one
+-- name: CreateTransaction :exec
 
 INSERT INTO transactions (
     amount,
@@ -12,7 +12,8 @@ INSERT INTO transactions (
 VALUES (
     $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING *;
+ON CONFLICT (reference_id)
+DO NOTHING;
 
 
 -- name: GetTransactions :many

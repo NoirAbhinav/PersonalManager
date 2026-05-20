@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createTransaction = `-- name: CreateTransaction :one
+const createTransaction = `-- name: CreateTransaction :exec
 
 INSERT INTO transactions (
     amount,
@@ -25,7 +25,8 @@ INSERT INTO transactions (
 VALUES (
     $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, amount, type, account_last4, merchant, name, reference_id, occurred_at, created_at
+ON CONFLICT (reference_id)
+DO NOTHING
 `
 
 type CreateTransactionParams struct {
@@ -38,8 +39,8 @@ type CreateTransactionParams struct {
 	OccurredAt   pgtype.Timestamp
 }
 
-func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
-	row := q.db.QueryRow(ctx, createTransaction,
+func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
+	_, err := q.db.Exec(ctx, createTransaction,
 		arg.Amount,
 		arg.Type,
 		arg.AccountLast4,
@@ -48,19 +49,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.ReferenceID,
 		arg.OccurredAt,
 	)
-	var i Transaction
-	err := row.Scan(
-		&i.ID,
-		&i.Amount,
-		&i.Type,
-		&i.AccountLast4,
-		&i.Merchant,
-		&i.Name,
-		&i.ReferenceID,
-		&i.OccurredAt,
-		&i.CreatedAt,
-	)
-	return i, err
+	return err
 }
 
 const getTransactions = `-- name: GetTransactions :many

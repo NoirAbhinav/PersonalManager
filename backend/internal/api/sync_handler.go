@@ -3,109 +3,114 @@ package api
 import (
 	"net/http"
 
+	"github.com/NoirAbhinav/personalmanager/internal/auth"
 	gmailintegration "github.com/NoirAbhinav/personalmanager/internal/integrations/gmail"
 	"github.com/NoirAbhinav/personalmanager/internal/repositories"
 	"github.com/NoirAbhinav/personalmanager/internal/services"
-
 	"github.com/gin-gonic/gin"
+
 	"golang.org/x/oauth2"
 )
 
-type AuthHandler struct {
-	OAuthConfig           *oauth2.Config
-	oathrepository        *repositories.OAuthRepository
+type SyncHandler struct {
+	OAuthConfig *oauth2.Config
+
+	oauthRepository *repositories.OAuthRepository
+
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
 }
 
-func NewAuthHandler(
+func NewSyncHandler(
 	oauthConfig *oauth2.Config,
-	transactionRepository *repositories.TransactionRepository,
-	oauthrepository *repositories.OAuthRepository,
-	syncStateRepository *repositories.SyncStateRepository,
-) *AuthHandler {
 
-	return &AuthHandler{
-		OAuthConfig:           oauthConfig,
+	oauthRepository *repositories.OAuthRepository,
+
+	transactionRepository *repositories.TransactionRepository,
+
+	syncStateRepository *repositories.SyncStateRepository,
+) *SyncHandler {
+
+	return &SyncHandler{
+		OAuthConfig: oauthConfig,
+
+		oauthRepository: oauthRepository,
+
 		transactionRepository: transactionRepository,
-		oathrepository:        oauthrepository,
+
+		syncStateRepository: syncStateRepository,
 	}
 }
 
-func (h *AuthHandler) GoogleLogin(c *gin.Context) {
-
-	url := h.OAuthConfig.AuthCodeURL(
-		"state-token",
-		oauth2.AccessTypeOffline,
-		oauth2.ApprovalForce,
-	)
-
-	c.Redirect(
-		http.StatusTemporaryRedirect,
-		url,
-	)
-}
-
-func (h *AuthHandler) GoogleCallback(c *gin.Context) {
+func (h *SyncHandler) SyncGmail(
+	c *gin.Context,
+) {
 
 	ctx := c.Request.Context()
 
-	code := c.Query("code")
+	// TEMPORARY:
+	// hardcoded email until auth/users added
+	email := "abhinavbbps2000@gmail.com"
 
-	if code == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "missing authorization code",
-		})
-		return
-	}
-
-	token, err := h.OAuthConfig.Exchange(
+	integration, err := h.oauthRepository.GetByEmail(
 		ctx,
-		code,
+		email,
 	)
 
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+
+		return
+	}
+
+	token := &oauth2.Token{
+		AccessToken:  integration.AccessToken,
+		RefreshToken: integration.RefreshToken,
+		TokenType:    integration.TokenType.String,
+		Expiry:       integration.Expiry.Time,
+	}
+
+	freshToken, err := auth.RefreshToken(
+		ctx,
+
+		h.OAuthConfig,
+
+		token,
+
+		email,
+
+		h.oauthRepository,
+	)
+
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+
 		return
 	}
 
 	gmailClient, err := gmailintegration.NewClient(
 		ctx,
 		h.OAuthConfig,
-		token,
+		freshToken,
 	)
 
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+
 		return
 	}
 
 	gmailService := gmailintegration.NewService(
 		gmailClient,
-	)
-	email, err := gmailService.GetProfile(ctx)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-	err = h.oathrepository.SaveGoogleToken(
-		ctx,
-
-		email,
-
-		token.AccessToken,
-		token.RefreshToken,
-
-		token.TokenType,
-
-		token.Expiry,
 	)
 
 	syncService := services.NewGmailSyncService(
@@ -117,13 +122,15 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 	err = syncService.SyncHDFCTransactions(ctx, email)
 
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": "transactions synced successfully",
+		"status": "gmail sync completed",
 	})
 }
