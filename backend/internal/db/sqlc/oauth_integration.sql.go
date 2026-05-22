@@ -11,9 +11,102 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createOAuthIntegration = `-- name: CreateOAuthIntegration :one
+const getOAuthIntegrationByEmail = `-- name: GetOAuthIntegrationByEmail :one
+
+SELECT id, provider, email, access_token, refresh_token, token_type, expiry, created_at, updated_at, user_id
+FROM oauth_integrations
+WHERE user_id = $1
+AND email = $2
+LIMIT 1
+`
+
+type GetOAuthIntegrationByEmailParams struct {
+	UserID pgtype.UUID
+	Email  string
+}
+
+func (q *Queries) GetOAuthIntegrationByEmail(ctx context.Context, arg GetOAuthIntegrationByEmailParams) (OauthIntegration, error) {
+	row := q.db.QueryRow(ctx, getOAuthIntegrationByEmail, arg.UserID, arg.Email)
+	var i OauthIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.Provider,
+		&i.Email,
+		&i.AccessToken,
+		&i.RefreshToken,
+		&i.TokenType,
+		&i.Expiry,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getOAuthIntegrationByUserIDAndProvider = `-- name: GetOAuthIntegrationByUserIDAndProvider :one
+
+SELECT id, provider, email, access_token, refresh_token, token_type, expiry, created_at, updated_at, user_id
+FROM oauth_integrations
+WHERE user_id = $1
+AND provider = $2
+LIMIT 1
+`
+
+type GetOAuthIntegrationByUserIDAndProviderParams struct {
+	UserID   pgtype.UUID
+	Provider string
+}
+
+func (q *Queries) GetOAuthIntegrationByUserIDAndProvider(ctx context.Context, arg GetOAuthIntegrationByUserIDAndProviderParams) (OauthIntegration, error) {
+	row := q.db.QueryRow(ctx, getOAuthIntegrationByUserIDAndProvider, arg.UserID, arg.Provider)
+	var i OauthIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.Provider,
+		&i.Email,
+		&i.AccessToken,
+		&i.RefreshToken,
+		&i.TokenType,
+		&i.Expiry,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const updateOAuthToken = `-- name: UpdateOAuthToken :exec
+
+UPDATE oauth_integrations
+SET
+    access_token = $2,
+    expiry = $3,
+    updated_at = NOW()
+WHERE user_id = $1
+AND provider = $4
+`
+
+type UpdateOAuthTokenParams struct {
+	UserID      pgtype.UUID
+	AccessToken string
+	Expiry      pgtype.Timestamp
+	Provider    string
+}
+
+func (q *Queries) UpdateOAuthToken(ctx context.Context, arg UpdateOAuthTokenParams) error {
+	_, err := q.db.Exec(ctx, updateOAuthToken,
+		arg.UserID,
+		arg.AccessToken,
+		arg.Expiry,
+		arg.Provider,
+	)
+	return err
+}
+
+const upsertOAuthIntegration = `-- name: UpsertOAuthIntegration :one
 
 INSERT INTO oauth_integrations (
+    user_id,
     provider,
     email,
     access_token,
@@ -22,12 +115,20 @@ INSERT INTO oauth_integrations (
     expiry
 )
 VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, provider, email, access_token, refresh_token, token_type, expiry, created_at, updated_at
+ON CONFLICT (user_id, provider, email)
+DO UPDATE SET
+    access_token = EXCLUDED.access_token,
+    refresh_token = EXCLUDED.refresh_token,
+    token_type = EXCLUDED.token_type,
+    expiry = EXCLUDED.expiry,
+    updated_at = NOW()
+RETURNING id, provider, email, access_token, refresh_token, token_type, expiry, created_at, updated_at, user_id
 `
 
-type CreateOAuthIntegrationParams struct {
+type UpsertOAuthIntegrationParams struct {
+	UserID       pgtype.UUID
 	Provider     string
 	Email        string
 	AccessToken  string
@@ -36,8 +137,9 @@ type CreateOAuthIntegrationParams struct {
 	Expiry       pgtype.Timestamp
 }
 
-func (q *Queries) CreateOAuthIntegration(ctx context.Context, arg CreateOAuthIntegrationParams) (OauthIntegration, error) {
-	row := q.db.QueryRow(ctx, createOAuthIntegration,
+func (q *Queries) UpsertOAuthIntegration(ctx context.Context, arg UpsertOAuthIntegrationParams) (OauthIntegration, error) {
+	row := q.db.QueryRow(ctx, upsertOAuthIntegration,
+		arg.UserID,
 		arg.Provider,
 		arg.Email,
 		arg.AccessToken,
@@ -56,52 +158,7 @@ func (q *Queries) CreateOAuthIntegration(ctx context.Context, arg CreateOAuthInt
 		&i.Expiry,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserID,
 	)
 	return i, err
-}
-
-const getOAuthIntegrationByEmail = `-- name: GetOAuthIntegrationByEmail :one
-
-SELECT id, provider, email, access_token, refresh_token, token_type, expiry, created_at, updated_at
-FROM oauth_integrations
-WHERE email = $1
-LIMIT 1
-`
-
-func (q *Queries) GetOAuthIntegrationByEmail(ctx context.Context, email string) (OauthIntegration, error) {
-	row := q.db.QueryRow(ctx, getOAuthIntegrationByEmail, email)
-	var i OauthIntegration
-	err := row.Scan(
-		&i.ID,
-		&i.Provider,
-		&i.Email,
-		&i.AccessToken,
-		&i.RefreshToken,
-		&i.TokenType,
-		&i.Expiry,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const updateOAuthToken = `-- name: UpdateOAuthToken :exec
-
-UPDATE oauth_integrations
-SET
-    access_token = $2,
-    expiry = $3,
-    updated_at = NOW()
-WHERE email = $1
-`
-
-type UpdateOAuthTokenParams struct {
-	Email       string
-	AccessToken string
-	Expiry      pgtype.Timestamp
-}
-
-func (q *Queries) UpdateOAuthToken(ctx context.Context, arg UpdateOAuthTokenParams) error {
-	_, err := q.db.Exec(ctx, updateOAuthToken, arg.Email, arg.AccessToken, arg.Expiry)
-	return err
 }

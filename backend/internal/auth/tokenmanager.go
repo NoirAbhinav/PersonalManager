@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NoirAbhinav/personalmanager/internal/repositories"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"golang.org/x/oauth2"
 )
@@ -15,7 +16,7 @@ func RefreshToken(
 
 	token *oauth2.Token,
 
-	email string,
+	userID pgtype.UUID,
 
 	oauthRepository *repositories.OAuthRepository,
 ) (*oauth2.Token, error) {
@@ -34,7 +35,7 @@ func RefreshToken(
 	err = oauthRepository.UpdateToken(
 		ctx,
 
-		email,
+		userID,
 
 		freshToken.AccessToken,
 

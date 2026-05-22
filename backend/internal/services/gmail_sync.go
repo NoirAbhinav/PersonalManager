@@ -76,13 +76,23 @@ func (s *GmailSyncService) SyncHDFCTransactions(
 
 	for _, email := range emails {
 
+		// Try parsing as UPI/VPA transaction first
 		transaction, err := parsers.ParseHDFCTransaction(
 			email.HTMLBody,
 		)
 
+		// If UPI parsing fails, try international card transaction parsing
+		if err != nil {
+			transaction, err = parsers.ParseHDFCInternationalCardTransaction(
+				email.HTMLBody,
+			)
+		}
+
+		// Skip if both parsers fail
 		if err != nil {
 			continue
 		}
+
 		if email.ID == lastMessageID {
 			break
 		}

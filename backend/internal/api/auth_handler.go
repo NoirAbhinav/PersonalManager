@@ -13,7 +13,8 @@ import (
 
 type AuthHandler struct {
 	OAuthConfig           *oauth2.Config
-	oathrepository        *repositories.OAuthRepository
+	oauthRepository       *repositories.OAuthRepository
+	userRepository        *repositories.UserRepository
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
 }
@@ -21,17 +22,19 @@ type AuthHandler struct {
 func NewAuthHandler(
 	oauthConfig *oauth2.Config,
 	transactionRepository *repositories.TransactionRepository,
-	oauthrepository *repositories.OAuthRepository,
+	oauthRepository *repositories.OAuthRepository,
 	syncStateRepository *repositories.SyncStateRepository,
+	userRepository *repositories.UserRepository,
 ) *AuthHandler {
 
 	return &AuthHandler{
 		OAuthConfig:           oauthConfig,
 		transactionRepository: transactionRepository,
-		oathrepository:        oauthrepository,
+		oauthRepository:       oauthRepository,
+		syncStateRepository:   syncStateRepository,
+		userRepository:        userRepository,
 	}
 }
-
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 
 	url := h.OAuthConfig.AuthCodeURL(
@@ -87,26 +90,41 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 	gmailService := gmailintegration.NewService(
 		gmailClient,
 	)
-	email, err := gmailService.GetProfile(ctx)
 
+	email, err := gmailService.GetProfile(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	err = h.oathrepository.SaveGoogleToken(
+
+	user, err := h.userRepository.GetByEmail(ctx, email)
+	if err != nil {
+		user, err = h.userRepository.Create(ctx, email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+	}
+
+	err = h.oauthRepository.SaveGoogleToken(
 		ctx,
-
 		email,
-
+		user,
 		token.AccessToken,
 		token.RefreshToken,
-
 		token.TokenType,
-
 		token.Expiry,
 	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	syncService := services.NewGmailSyncService(
 		gmailService,
@@ -115,6 +133,12 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 	)
 
 	err = syncService.SyncHDFCTransactions(ctx, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

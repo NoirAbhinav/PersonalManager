@@ -48,6 +48,10 @@ func main() {
 		transactionRepository,
 	)
 
+	userRepository := repositories.NewUserRepository(
+		queries,
+	)
+
 	// OAuth config
 	oauthConfig := auth.NewGoogleOAuthConfig(cfg)
 
@@ -57,6 +61,7 @@ func main() {
 		transactionRepository,
 		oathRepository,
 		syncStateRepository,
+		userRepository,
 	)
 
 	transactionHandler := api.NewTransactionHandler(
@@ -67,6 +72,7 @@ func main() {
 		oauthConfig,
 
 		oathRepository,
+		userRepository,
 
 		transactionRepository,
 		syncStateRepository,

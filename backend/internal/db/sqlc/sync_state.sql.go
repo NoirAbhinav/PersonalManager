@@ -13,7 +13,7 @@ import (
 
 const getSyncStateByEmail = `-- name: GetSyncStateByEmail :one
 
-SELECT id, provider, email, last_message_id, updated_at
+SELECT id, provider, email, last_message_id, updated_at, user_id
 FROM sync_state
 WHERE email = $1
 LIMIT 1
@@ -28,6 +28,7 @@ func (q *Queries) GetSyncStateByEmail(ctx context.Context, email string) (SyncSt
 		&i.Email,
 		&i.LastMessageID,
 		&i.UpdatedAt,
+		&i.UserID,
 	)
 	return i, err
 }

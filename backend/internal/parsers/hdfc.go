@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,13 @@ var hdfcTransactionRegex = regexp.MustCompile(
 
 var referenceRegex = regexp.MustCompile(
 	`UPI transaction reference no\.: (\d+)`,
+)
+
+// hdfcIntlCardRegex matches international debit/credit card transaction alert emails.
+// Example: "Your HDFC Bank Debit Card ending in XX5899 was used for an international
+// purchase of INR 778.30 on 18/05/2026 at PAYPAL *N2EENTERTAI."
+var hdfcIntlCardRegex = regexp.MustCompile(
+	`Your HDFC Bank (Debit|Credit) Card ending in (?:XX)?(\d{4}) was used for an international purchase of (?:INR|Rs\.?) ([\d,]+\.\d+) on (\d{2}/\d{2}/\d{4}) at ([^.<]+)`,
 )
 
 func ParseHDFCTransaction(
@@ -70,6 +78,44 @@ func ParseHDFCTransaction(
 
 	if len(refMatch) > 1 {
 		transaction.ReferenceID = refMatch[1]
+	}
+
+	return transaction, nil
+}
+
+// ParseHDFCInternationalCardTransaction parses HDFC Bank international debit/credit
+// card transaction alert emails.
+func ParseHDFCInternationalCardTransaction(
+	body string,
+) (*Transaction, error) {
+
+	match := hdfcIntlCardRegex.FindStringSubmatch(body)
+
+	if len(match) == 0 {
+		return nil, fmt.Errorf("international card transaction pattern not found")
+	}
+
+	// Strip commas from amount (e.g. "1,234.56" → "1234.56")
+	rawAmount := regexp.MustCompile(`,`).ReplaceAllString(match[2], "")
+	amount, err := strconv.ParseFloat(rawAmount, 64)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse amount %q: %w", match[2], err)
+	}
+
+	transactionTime, err := time.Parse("02/01/2006", match[3])
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse date %q: %w", match[3], err)
+	}
+
+	merchant := strings.TrimSpace(match[4])
+
+	transaction := &Transaction{
+		Amount:       amount,
+		Type:         "debited", // international card alerts are always purchase/debit
+		AccountLast4: match[1],
+		Merchant:     merchant,
+		Name:         merchant,
+		OccurredAt:   transactionTime,
 	}
 
 	return transaction, nil

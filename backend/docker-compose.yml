@@ -1,0 +1,34 @@
+version: '2'
+services:
+  postgres:
+    image: postgres:16
+    container_name: db
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ~/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: console
+      POSTGRES_USER: consoleuser
+      POSTGRES_PASSWORD: buddy123
+  redis:
+    container_name: redis
+    image: 'bitnami/redis:latest'
+    restart: always
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    restart: always
+    ports:
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: buddy
+      RABBITMQ_DEFAULT_PASS: buddy
+      HEARTBEAT: 300
+

@@ -18,6 +18,7 @@ type OauthIntegration struct {
 	Expiry       pgtype.Timestamp
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
+	UserID       pgtype.UUID
 }
 
 type SyncState struct {
@@ -26,6 +27,7 @@ type SyncState struct {
 	Email         string
 	LastMessageID pgtype.Text
 	UpdatedAt     pgtype.Timestamp
+	UserID        pgtype.UUID
 }
 
 type Transaction struct {
@@ -38,4 +40,11 @@ type Transaction struct {
 	ReferenceID  pgtype.Text
 	OccurredAt   pgtype.Timestamp
 	CreatedAt    pgtype.Timestamp
+	UserID       pgtype.UUID
+}
+
+type User struct {
+	ID        pgtype.UUID
+	Email     string
+	CreatedAt pgtype.Timestamp
 }

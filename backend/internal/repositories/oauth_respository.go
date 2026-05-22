@@ -24,7 +24,7 @@ func (r *OAuthRepository) SaveGoogleToken(
 	ctx context.Context,
 
 	email string,
-
+	user sqlc.User,
 	accessToken string,
 	refreshToken string,
 
@@ -33,9 +33,10 @@ func (r *OAuthRepository) SaveGoogleToken(
 	expiry time.Time,
 ) error {
 
-	_, err := r.queries.CreateOAuthIntegration(
+	_, err := r.queries.UpsertOAuthIntegration(
 		ctx,
-		sqlc.CreateOAuthIntegrationParams{
+		sqlc.UpsertOAuthIntegrationParams{
+			UserID:   user.ID,
 			Provider: "google",
 
 			Email: email,
@@ -59,21 +60,25 @@ func (r *OAuthRepository) SaveGoogleToken(
 	return err
 }
 
-func (r *OAuthRepository) GetByEmail(
+func (r *OAuthRepository) GetByUserIDAndProvider(
 	ctx context.Context,
-	email string,
+	userID pgtype.UUID,
+	provider string,
 ) (sqlc.OauthIntegration, error) {
 
-	return r.queries.GetOAuthIntegrationByEmail(
+	return r.queries.GetOAuthIntegrationByUserIDAndProvider(
 		ctx,
-		email,
+		sqlc.GetOAuthIntegrationByUserIDAndProviderParams{
+			UserID:   userID,
+			Provider: provider,
+		},
 	)
 }
 
 func (r *OAuthRepository) UpdateToken(
 	ctx context.Context,
 
-	email string,
+	userID pgtype.UUID,
 
 	accessToken string,
 
@@ -83,7 +88,7 @@ func (r *OAuthRepository) UpdateToken(
 	return r.queries.UpdateOAuthToken(
 		ctx,
 		sqlc.UpdateOAuthTokenParams{
-			Email: email,
+			UserID: userID,
 
 			AccessToken: accessToken,
 
@@ -91,6 +96,21 @@ func (r *OAuthRepository) UpdateToken(
 				Time:  expiry,
 				Valid: true,
 			},
+		},
+	)
+}
+
+func (r *OAuthRepository) GetByEmail(
+	ctx context.Context,
+	userID pgtype.UUID,
+	email string,
+) (sqlc.OauthIntegration, error) {
+
+	return r.queries.GetOAuthIntegrationByEmail(
+		ctx,
+		sqlc.GetOAuthIntegrationByEmailParams{
+			UserID: userID,
+			Email:  email,
 		},
 	)
 }

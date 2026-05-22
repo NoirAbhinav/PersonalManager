@@ -16,6 +16,7 @@ type SyncHandler struct {
 	OAuthConfig *oauth2.Config
 
 	oauthRepository *repositories.OAuthRepository
+	userRepository  *repositories.UserRepository
 
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
@@ -25,6 +26,7 @@ func NewSyncHandler(
 	oauthConfig *oauth2.Config,
 
 	oauthRepository *repositories.OAuthRepository,
+	userRepository *repositories.UserRepository,
 
 	transactionRepository *repositories.TransactionRepository,
 
@@ -35,6 +37,7 @@ func NewSyncHandler(
 		OAuthConfig: oauthConfig,
 
 		oauthRepository: oauthRepository,
+		userRepository:  userRepository,
 
 		transactionRepository: transactionRepository,
 
@@ -52,8 +55,17 @@ func (h *SyncHandler) SyncGmail(
 	// hardcoded email until auth/users added
 	email := "abhinavbbps2000@gmail.com"
 
+	user, err := h.userRepository.GetByEmail(ctx, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	integration, err := h.oauthRepository.GetByEmail(
 		ctx,
+		user.ID,
 		email,
 	)
 
@@ -80,7 +92,7 @@ func (h *SyncHandler) SyncGmail(
 
 		token,
 
-		email,
+		user.ID,
 
 		h.oauthRepository,
 	)

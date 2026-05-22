@@ -54,7 +54,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 
 const getTransactions = `-- name: GetTransactions :many
 
-SELECT id, amount, type, account_last4, merchant, name, reference_id, occurred_at, created_at
+SELECT id, amount, type, account_last4, merchant, name, reference_id, occurred_at, created_at, user_id
 FROM transactions
 ORDER BY occurred_at DESC
 `
@@ -78,6 +78,7 @@ func (q *Queries) GetTransactions(ctx context.Context) ([]Transaction, error) {
 			&i.ReferenceID,
 			&i.OccurredAt,
 			&i.CreatedAt,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
