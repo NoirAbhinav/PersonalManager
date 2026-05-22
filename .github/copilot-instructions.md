@@ -1,386 +1,159 @@
-# Personal Manager Backend — Copilot Instructions
+Project: PersonalManager
+Language: Go
+Framework: Gin
+DB: PostgreSQL
+ORM/Queries: sqlc
+Migrations: goose
+Hosting target: Oracle Cloud Free Tier
+Architecture style: layered clean architecture
 
-## Project Overview
+Current backend structure:
 
-This project is a backend-first personal management platform written in Go.
-
-The system ingests personal data from external integrations such as:
-- Gmail
-- Calendar providers
-- Banking notifications
-- Productivity tools
-- Future third-party integrations
-
-The initial feature set focuses on:
-- Google OAuth authentication
-- Gmail integration
-- Fetching and storing emails
-- Extracting financial transactions from emails
-
-Long term, the platform will evolve into a generalized personal event ingestion and processing system.
-
----
-
-# Core Architecture Principles
-
-## 1. Monolith First
-
-This project intentionally uses a modular monolith architecture.
-
-DO NOT introduce:
-- microservices
-- distributed systems
-- event brokers
-- Kubernetes-specific abstractions
-- CQRS/Event Sourcing complexity
-
-The backend should remain:
-- simple
-- maintainable
-- scalable through modular boundaries
-
----
-
-## 2. Raw Data First
-
-External integrations should NEVER directly mutate domain entities.
-
-Correct flow:
-
-Integration → Raw Event Storage → Processors → Normalized Domain Entities
-
-Example:
-
-Gmail API → raw_events table → transaction processor → transactions table
-
-Always preserve raw source payloads.
-
----
-
-## 3. Separation of Concerns
-
-Keep layers isolated.
-
-### API Layer
-Responsible only for:
-- request parsing
-- validation
-- response formatting
-
-### Service Layer
-Responsible for:
-- business logic
-- orchestration
-
-### Repository Layer
-Responsible only for:
-- database access
-
-### Integration Layer
-Responsible for:
-- external APIs
-- OAuth flows
-- third-party communication
-
----
-
-# Tech Stack
-
-## Backend
-- Go
-- Gin HTTP framework
-- PostgreSQL
-- pgx/sqlc preferred over ORM
-- Google OAuth2
-- Gmail API
-
-## Future Additions
-- Redis
-- Asynq workers
-- Webhooks
-- AI enrichment pipelines
-
----
-
-# Coding Standards
-
-## General Go Rules
-
-- Prefer standard library when possible
-- Keep dependencies minimal
-- Avoid unnecessary abstractions
-- Prefer explicit code over magic
-- Favor composition over inheritance-like patterns
-- Keep functions small and focused
-
----
-
-## Error Handling
-
-Always return wrapped errors using:
-
-```go
-fmt.Errorf("fetch gmail messages: %w", err)
-```
-
-Never silently ignore errors.
-
----
-
-## Context Usage
-
-All I/O operations must accept context.Context.
-
-Example:
-
-```go
-func (s *Service) SyncEmails(ctx context.Context, userID string) error
-```
-
----
-
-## Interfaces
-
-DO NOT create interfaces prematurely.
-
-Only introduce interfaces when:
-- multiple implementations exist
-- testing genuinely benefits
-
-Avoid Java-style overengineering.
-
----
-
-# Folder Structure
-
-Backend structure:
-
-```text
 backend/
-├── cmd/
-│   └── server/
+├── cmd/server
 ├── internal/
 │   ├── api/
 │   ├── auth/
 │   ├── config/
 │   ├── db/
+│   │   ├── migrations/
+│   │   ├── queries/
+│   │   └── sqlc/
 │   ├── integrations/
 │   │   └── gmail/
-│   ├── ingestion/
-│   ├── parsing/
-│   ├── normalization/
-│   ├── domain/
+│   ├── parsers/
 │   ├── repositories/
 │   ├── services/
 │   ├── jobs/
-│   ├── middleware/
 │   └── utils/
-├── migrations/
-└── scripts/
-```
+├── .env
+├── go.mod
 
----
+Current functionality implemented:
+- Google OAuth login flow
+- Gmail readonly integration
+- Gmail email fetcher
+- HTML body extraction from Gmail MIME payload
+- HDFC transaction email parser
+- PostgreSQL persistence
+- Token persistence
+- Incremental sync groundwork
+- Transactions API
 
-# Database Guidelines
+Architecture:
+handler -> service -> repository -> sqlc -> postgres
 
-## Preferred Approach
+Implemented APIs:
+- GET /health
+- GET /auth/google/login
+- GET /auth/google/callback
+- POST /sync/gmail
+- GET /transactions
 
-Use:
-- pgx
-OR
-- sqlc
+OAuth flow:
+- User logs in once via Google OAuth
+- Refresh token stored in DB
+- Future syncs use stored refresh token
+- oauth2.TokenSource used to auto-refresh access tokens
+- refreshed access token persisted back to DB
 
-Avoid heavy ORM usage unless explicitly needed.
+Tables implemented:
+1. transactions
+2. oauth_integrations
+3. sync_state
 
----
+transactions table:
+- amount
+- type
+- account_last4
+- merchant
+- name
+- reference_id UNIQUE
+- occurred_at
 
-## Tables
-
-The system revolves around raw ingestion.
-
-Important tables include:
-- users
-- integrations
-- raw_events
-- transactions
-
----
-
-## raw_events Table
-
-This is the core ingestion pipeline table.
-
-It stores:
+oauth_integrations table:
 - provider
-- source type
-- raw payload
-- metadata
-- processing status
+- email
+- access_token
+- refresh_token
+- token_type
+- expiry
 
-Processors consume raw_events asynchronously.
-
----
-
-# API Guidelines
-
-## REST Style
-
-Use predictable REST conventions.
-
-Examples:
-
-```text
-GET    /health
-GET    /auth/google/login
-GET    /auth/google/callback
-POST   /sync/gmail
-GET    /events
-GET    /transactions
-```
-
----
-
-## Response Shape
-
-Use consistent JSON responses.
-
-Success:
-
-```json
-{
-  "data": {}
-}
-```
-
-Error:
-
-```json
-{
-  "error": {
-    "message": "something failed"
-  }
-}
-```
-
----
-
-# Gmail Integration Rules
-
-## Gmail Is an Integration
-
-Do NOT tightly couple Gmail to transactions.
-
-Gmail provides raw ingestible events.
-
-Transaction extraction happens later in processors.
-
----
-
-## Initial Gmail Goals
-
-First implementation should:
-- authenticate user
-- fetch latest emails
-- store raw payloads
-
-Do NOT prematurely optimize parsing logic.
-
----
-
-# Parsing Rules
-
-Parsing should be:
-- deterministic
-- testable
-- provider-specific
-
-Use:
-- regex
-- structured extraction
-- normalization pipelines
-
-Avoid AI/LLM parsing initially.
-
----
-
-# Concurrency Rules
-
-Use goroutines carefully.
-
-Prefer:
-- bounded concurrency
-- worker pools
-- context cancellation
-
-Avoid:
-- uncontrolled goroutine spawning
-- shared mutable state
-
----
-
-# Logging
-
-Use structured logging.
-
-Preferred fields:
-- request_id
-- user_id
+sync_state table currently uses:
 - provider
-- integration
-- operation
+- email
+- last_message_id
+- updated_at
 
-Never log:
-- access tokens
-- refresh tokens
-- sensitive email content
+Important architecture decisions:
+- Gmail integration layer ONLY talks to Gmail API
+- Business logic lives in services
+- Persistence logic lives in repositories
+- Handlers remain thin
 
----
+Current Gmail sync approach:
+- fetch latest emails from Gmail
+- Gmail query:
+  from:alerts@hdfcbank.bank.in
+- latest emails returned newest-first
+- sync service stops processing when last known message ID is encountered
+- newest processed message ID saved into sync_state
+- duplicate transaction inserts prevented using:
+  ON CONFLICT (reference_id) DO NOTHING
 
-# Security Rules
+Current sync flow:
+1. Load OAuth token from DB
+2. Refresh token if needed
+3. Persist refreshed token
+4. Create Gmail client
+5. Fetch latest HDFC emails
+6. Stop when previous last_message_id encountered
+7. Parse transactions
+8. Insert into DB
+9. Save newest message ID
 
-- Never hardcode secrets
-- Use environment variables
-- Encrypt sensitive integration credentials
-- Validate OAuth state parameters
-- Sanitize external payloads
-- Never trust client input
+Gmail History API was discussed but intentionally deferred for now because:
+- current MVP architecture is sufficient
+- history API introduces event-stream complexity
+- current message-id cutoff approach is acceptable for MVP
 
----
+Current recommendation:
+- keep current message-id cutoff incremental sync
+- later migrate to gmail_history_id + Gmail History API
 
-# Testing Philosophy
+Current repositories:
+- TransactionRepository
+- OAuthRepository
+- SyncStateRepository
 
-Prioritize:
-- service tests
-- parser tests
-- repository tests
+Current services:
+- GmailSyncService
+- TransactionService
 
-Avoid excessive mocking.
+Important implementation details:
+- sqlc queries use :exec for insert queries with ON CONFLICT DO NOTHING
+- pgtype.Text and pgtype.Timestamp used for nullable postgres fields
+- oauth2.AccessTypeOffline and oauth2.ApprovalForce used during login to force refresh token issuance
 
-Prefer real integration-style testing when feasible.
+Deployment plan:
+- Oracle Cloud Free Tier
+- Prefer VM.Standard.A1.Flex (Ampere ARM)
+- Ubuntu
+- Docker + docker compose
+- Nginx reverse proxy
+- Future cron/background sync jobs
 
----
+Git issue resolved:
+- SSH keys were correct
+- GitHub attribution issue caused by git user.email being set to office email
+- repo-level git config fixed it
 
-# Performance Philosophy
-
-Do not optimize prematurely.
-
-Focus first on:
-- correctness
-- maintainability
-- clean architecture
-
-Optimize only after bottlenecks are measurable.
-
----
-
-# Important Philosophy
-
-This project is intended to become a generalized personal data orchestration platform.
-
-The backend should evolve as:
-- integration-first
-- ingestion-driven
-- event-oriented
-- modular
-
-without becoming unnecessarily distributed or overengineered.
+Current next likely priorities:
+- background sync jobs
+- multiple bank support
+- transaction normalization
+- user/account modeling
+- frontend
+- observability/logging
+- pagination/filtering
+- Dockerization
