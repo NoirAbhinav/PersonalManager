@@ -13,3 +13,6 @@ WHERE email = $1;
 -- name: GetUserByID :one
 SELECT * FROM users
 WHERE id = $1;
+
+-- name: GetAllUsers :many
+SELECT * FROM users;

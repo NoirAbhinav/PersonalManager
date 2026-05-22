@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/NoirAbhinav/personalmanager/internal/api"
@@ -80,6 +81,16 @@ func main() {
 	// Setup router
 	r := gin.Default()
 
+	// Configure CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "Location"}, // added Location
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}))
+
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -92,6 +103,10 @@ func main() {
 		"/auth/google/login",
 		authHandler.GoogleLogin,
 	)
+
+	r.GET("/api/me", authHandler.Me)
+
+	r.GET("/auth/logout", authHandler.Logout)
 
 	r.GET(
 		"/auth/google/callback",
@@ -108,6 +123,8 @@ func main() {
 		"/sync/gmail",
 		syncHandler.SyncGmail,
 	)
+
+	r.GET("/sync/status", syncHandler.GetSyncStatus)
 
 	// Start server
 	log.Printf("server running on port %s", cfg.Port)

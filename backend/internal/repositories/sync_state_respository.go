@@ -53,3 +53,23 @@ func (r *SyncStateRepository) SaveLastMessageID(
 		},
 	)
 }
+
+func (r *SyncStateRepository) UpdateStatus(
+	ctx context.Context,
+	email string,
+	status string,
+	syncErr string,
+) error {
+	return r.queries.UpdateSyncStatus(ctx, sqlc.UpdateSyncStatusParams{
+		Email:  email,
+		Status: status,
+		Error:  pgtype.Text{String: syncErr, Valid: syncErr != ""},
+	})
+}
+
+func (r *SyncStateRepository) GetStatus(
+	ctx context.Context,
+	email string,
+) (sqlc.GetSyncStatusRow, error) {
+	return r.queries.GetSyncStatus(ctx, email)
+}

@@ -28,6 +28,8 @@ type SyncState struct {
 	LastMessageID pgtype.Text
 	UpdatedAt     pgtype.Timestamp
 	UserID        pgtype.UUID
+	Status        string
+	Error         pgtype.Text
 }
 
 type Transaction struct {

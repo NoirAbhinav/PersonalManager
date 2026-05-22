@@ -13,7 +13,7 @@ import (
 
 const getSyncStateByEmail = `-- name: GetSyncStateByEmail :one
 
-SELECT id, provider, email, last_message_id, updated_at, user_id
+SELECT id, provider, email, last_message_id, updated_at, user_id, status, error
 FROM sync_state
 WHERE email = $1
 LIMIT 1
@@ -29,8 +29,50 @@ func (q *Queries) GetSyncStateByEmail(ctx context.Context, email string) (SyncSt
 		&i.LastMessageID,
 		&i.UpdatedAt,
 		&i.UserID,
+		&i.Status,
+		&i.Error,
 	)
 	return i, err
+}
+
+const getSyncStatus = `-- name: GetSyncStatus :one
+SELECT status, error, updated_at
+FROM sync_state
+WHERE email = $1
+`
+
+type GetSyncStatusRow struct {
+	Status    string
+	Error     pgtype.Text
+	UpdatedAt pgtype.Timestamp
+}
+
+func (q *Queries) GetSyncStatus(ctx context.Context, email string) (GetSyncStatusRow, error) {
+	row := q.db.QueryRow(ctx, getSyncStatus, email)
+	var i GetSyncStatusRow
+	err := row.Scan(&i.Status, &i.Error, &i.UpdatedAt)
+	return i, err
+}
+
+const updateSyncStatus = `-- name: UpdateSyncStatus :exec
+INSERT INTO sync_state (provider, email, status, error, updated_at)
+VALUES ('gmail', $1, $2, $3, NOW())
+ON CONFLICT (email)
+DO UPDATE SET
+    status = EXCLUDED.status,
+    error = EXCLUDED.error,
+    updated_at = NOW()
+`
+
+type UpdateSyncStatusParams struct {
+	Email  string
+	Status string
+	Error  pgtype.Text
+}
+
+func (q *Queries) UpdateSyncStatus(ctx context.Context, arg UpdateSyncStatusParams) error {
+	_, err := q.db.Exec(ctx, updateSyncStatus, arg.Email, arg.Status, arg.Error)
+	return err
 }
 
 const upsertSyncState = `-- name: UpsertSyncState :exec

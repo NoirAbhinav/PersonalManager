@@ -29,3 +29,7 @@ func (r *UserRepository) Create(
 ) (sqlc.User, error) {
 	return r.queries.CreateUser(ctx, email)
 }
+
+func (r *UserRepository) GetAll(ctx context.Context) ([]sqlc.User, error) {
+	return r.queries.GetAllUsers(ctx)
+}

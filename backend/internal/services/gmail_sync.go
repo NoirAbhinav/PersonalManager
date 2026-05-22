@@ -53,13 +53,11 @@ func buildHDFCQuery(
 func (s *GmailSyncService) SyncHDFCTransactions(
 	ctx context.Context,
 	email string,
+	onProgress func(current, total int),
 ) error {
-	var lastMessageID string
-	syncState, err := s.syncStateRepository.GetByEmail(
-		ctx,
-		email,
-	)
+	syncState, _ := s.syncStateRepository.GetByEmail(ctx, email)
 
+	var lastMessageID string
 	if syncState.LastMessageID.Valid {
 		lastMessageID = syncState.LastMessageID.String
 	}
@@ -69,41 +67,38 @@ func (s *GmailSyncService) SyncHDFCTransactions(
 		"from:alerts@hdfcbank.bank.in newer_than:30d",
 		100,
 	)
-
 	if err != nil {
 		return err
 	}
 
-	for _, email := range emails {
-
-		// Try parsing as UPI/VPA transaction first
-		transaction, err := parsers.ParseHDFCTransaction(
-			email.HTMLBody,
-		)
-
-		// If UPI parsing fails, try international card transaction parsing
-		if err != nil {
-			transaction, err = parsers.ParseHDFCInternationalCardTransaction(
-				email.HTMLBody,
-			)
-		}
-
-		// Skip if both parsers fail
-		if err != nil {
-			continue
-		}
-
-		if email.ID == lastMessageID {
+	// Filter already-synced emails first so total is accurate upfront
+	var pending []gmail.Email
+	for _, e := range emails {
+		if e.ID == lastMessageID {
 			break
 		}
+		pending = append(pending, e)
+	}
 
-		err = s.transactionRepository.Create(
-			ctx,
-			transaction,
-		)
+	total := len(pending)
+	if onProgress != nil {
+		onProgress(0, total)
+	}
 
+	for i, e := range pending {
+		transaction, err := parsers.ParseHDFCTransaction(e.HTMLBody)
 		if err != nil {
-			log.Println(err)
+			transaction, err = parsers.ParseHDFCInternationalCardTransaction(e.HTMLBody)
+		}
+
+		if err == nil {
+			if err := s.transactionRepository.Create(ctx, transaction); err != nil {
+				log.Println(err)
+			}
+		}
+
+		if onProgress != nil {
+			onProgress(i+1, total)
 		}
 	}
 
