@@ -12,8 +12,7 @@ import (
 )
 
 const getSyncStateByEmail = `-- name: GetSyncStateByEmail :one
-
-SELECT id, provider, email, last_message_id, updated_at, user_id, status, error
+SELECT id, provider, email, updated_at, user_id, status, error, history_id
 FROM sync_state
 WHERE email = $1
 LIMIT 1
@@ -26,11 +25,11 @@ func (q *Queries) GetSyncStateByEmail(ctx context.Context, email string) (SyncSt
 		&i.ID,
 		&i.Provider,
 		&i.Email,
-		&i.LastMessageID,
 		&i.UpdatedAt,
 		&i.UserID,
 		&i.Status,
 		&i.Error,
+		&i.HistoryID,
 	)
 	return i, err
 }
@@ -54,51 +53,22 @@ func (q *Queries) GetSyncStatus(ctx context.Context, email string) (GetSyncStatu
 	return i, err
 }
 
-const updateSyncStatus = `-- name: UpdateSyncStatus :exec
-INSERT INTO sync_state (provider, email, status, error, updated_at)
-VALUES ('gmail', $1, $2, $3, NOW())
+const upsertSyncState = `-- name: UpsertSyncState :exec
+INSERT INTO sync_state (provider, email, history_id)
+VALUES ($1, $2, $3)
 ON CONFLICT (email)
 DO UPDATE SET
-    status = EXCLUDED.status,
-    error = EXCLUDED.error,
-    updated_at = NOW()
-`
-
-type UpdateSyncStatusParams struct {
-	Email  string
-	Status string
-	Error  pgtype.Text
-}
-
-func (q *Queries) UpdateSyncStatus(ctx context.Context, arg UpdateSyncStatusParams) error {
-	_, err := q.db.Exec(ctx, updateSyncStatus, arg.Email, arg.Status, arg.Error)
-	return err
-}
-
-const upsertSyncState = `-- name: UpsertSyncState :exec
-
-INSERT INTO sync_state (
-    provider,
-    email,
-    last_message_id
-)
-VALUES (
-    $1, $2, $3
-)
-ON CONFLICT (email)
-DO UPDATE
-SET
-    last_message_id = EXCLUDED.last_message_id,
+    history_id = EXCLUDED.history_id,
     updated_at = NOW()
 `
 
 type UpsertSyncStateParams struct {
-	Provider      string
-	Email         string
-	LastMessageID pgtype.Text
+	Provider  string
+	Email     string
+	HistoryID pgtype.Text
 }
 
 func (q *Queries) UpsertSyncState(ctx context.Context, arg UpsertSyncStateParams) error {
-	_, err := q.db.Exec(ctx, upsertSyncState, arg.Provider, arg.Email, arg.LastMessageID)
+	_, err := q.db.Exec(ctx, upsertSyncState, arg.Provider, arg.Email, arg.HistoryID)
 	return err
 }

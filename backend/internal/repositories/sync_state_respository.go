@@ -24,46 +24,18 @@ func (r *SyncStateRepository) GetByEmail(
 	ctx context.Context,
 	email string,
 ) (sqlc.SyncState, error) {
-
-	return r.queries.GetSyncStateByEmail(
-		ctx,
-		email,
-	)
+	return r.queries.GetSyncStateByEmail(ctx, email)
 }
 
-func (r *SyncStateRepository) SaveLastMessageID(
-	ctx context.Context,
-
-	email string,
-
-	lastMessageID string,
-) error {
-
-	return r.queries.UpsertSyncState(
-		ctx,
-		sqlc.UpsertSyncStateParams{
-			Provider: "gmail",
-
-			Email: email,
-
-			LastMessageID: pgtype.Text{
-				String: lastMessageID,
-				Valid:  lastMessageID != "",
-			},
-		},
-	)
-}
-
-func (r *SyncStateRepository) UpdateStatus(
+func (r *SyncStateRepository) SaveHistoryID(
 	ctx context.Context,
 	email string,
-	status string,
-	syncErr string,
+	historyID string,
 ) error {
-	return r.queries.UpdateSyncStatus(ctx, sqlc.UpdateSyncStatusParams{
-		Email:  email,
-		Status: status,
-		Error:  pgtype.Text{String: syncErr, Valid: syncErr != ""},
+	return r.queries.UpsertSyncState(ctx, sqlc.UpsertSyncStateParams{
+		Provider:  "gmail",
+		Email:     email,
+		HistoryID: pgtype.Text{String: historyID, Valid: historyID != ""},
 	})
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NoirAbhinav/personalmanager/internal/db/sqlc"
-	"github.com/NoirAbhinav/personalmanager/internal/parsers"
+	"github.com/NoirAbhinav/personalmanager/internal/transactions"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -23,7 +23,7 @@ func NewTransactionRepository(
 
 func (r *TransactionRepository) Create(
 	ctx context.Context,
-	transaction *parsers.Transaction,
+	transaction *transactions.Transaction,
 ) error {
 
 	err := r.queries.CreateTransaction(

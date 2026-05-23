@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/NoirAbhinav/personalmanager/internal/db/sqlc"
 	"github.com/NoirAbhinav/personalmanager/internal/repositories"
 	"github.com/NoirAbhinav/personalmanager/internal/services"
+	"github.com/NoirAbhinav/personalmanager/internal/worker"
 )
 
 func main() {
@@ -69,15 +71,22 @@ func main() {
 		transactionService,
 	)
 
-	syncHandler := api.NewSyncHandler(
+	syncWorker := worker.NewSyncWorker(
 		oauthConfig,
-
 		oathRepository,
 		userRepository,
-
 		transactionRepository,
 		syncStateRepository,
 	)
+
+	syncHandler := api.NewSyncHandler(
+		syncWorker,
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go syncWorker.Start(ctx)
+
 	// Setup router
 	r := gin.Default()
 

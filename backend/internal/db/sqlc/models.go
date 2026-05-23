@@ -22,14 +22,14 @@ type OauthIntegration struct {
 }
 
 type SyncState struct {
-	ID            pgtype.UUID
-	Provider      string
-	Email         string
-	LastMessageID pgtype.Text
-	UpdatedAt     pgtype.Timestamp
-	UserID        pgtype.UUID
-	Status        string
-	Error         pgtype.Text
+	ID        pgtype.UUID
+	Provider  string
+	Email     string
+	UpdatedAt pgtype.Timestamp
+	UserID    pgtype.UUID
+	Status    string
+	Error     pgtype.Text
+	HistoryID pgtype.Text
 }
 
 type Transaction struct {
