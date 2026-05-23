@@ -11,9 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createTransaction = `-- name: CreateTransaction :exec
+const countTransactionsByUserID = `-- name: CountTransactionsByUserID :one
+SELECT COUNT(*)
+FROM transactions
+WHERE user_id = $1
+`
 
+func (q *Queries) CountTransactionsByUserID(ctx context.Context, userID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countTransactionsByUserID, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createTransaction = `-- name: CreateTransaction :exec
 INSERT INTO transactions (
+    user_id,
     amount,
     type,
     account_last4,
@@ -23,13 +36,14 @@ INSERT INTO transactions (
     occurred_at
 )
 VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4, $5, $6, $7, $8
 )
 ON CONFLICT (reference_id)
 DO NOTHING
 `
 
 type CreateTransactionParams struct {
+	UserID       pgtype.UUID
 	Amount       float64
 	Type         string
 	AccountLast4 pgtype.Text
@@ -41,6 +55,7 @@ type CreateTransactionParams struct {
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
 	_, err := q.db.Exec(ctx, createTransaction,
+		arg.UserID,
 		arg.Amount,
 		arg.Type,
 		arg.AccountLast4,
@@ -52,15 +67,22 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
-const getTransactions = `-- name: GetTransactions :many
-
+const getTransactionsByUserID = `-- name: GetTransactionsByUserID :many
 SELECT id, amount, type, account_last4, merchant, name, reference_id, occurred_at, created_at, user_id
 FROM transactions
+WHERE user_id = $1
 ORDER BY occurred_at DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetTransactions(ctx context.Context) ([]Transaction, error) {
-	rows, err := q.db.Query(ctx, getTransactions)
+type GetTransactionsByUserIDParams struct {
+	UserID pgtype.UUID
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetTransactionsByUserID(ctx context.Context, arg GetTransactionsByUserIDParams) ([]Transaction, error) {
+	rows, err := q.db.Query(ctx, getTransactionsByUserID, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

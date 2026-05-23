@@ -69,6 +69,7 @@ func main() {
 
 	transactionHandler := api.NewTransactionHandler(
 		transactionService,
+		userRepository,
 	)
 
 	syncWorker := worker.NewSyncWorker(

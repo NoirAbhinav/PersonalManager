@@ -129,7 +129,7 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 			h.transactionRepository,
 			h.syncStateRepository,
 		)
-		if err = syncService.SyncHDFCTransactions(ctx, email, nil); err != nil {
+		if err = syncService.SyncHDFCTransactions(ctx, email, user.ID.String(), nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

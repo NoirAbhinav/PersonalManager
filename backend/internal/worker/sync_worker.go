@@ -142,7 +142,7 @@ func (w *SyncWorker) process(ctx context.Context, email string) {
 	)
 
 	var total int
-	if err := syncService.SyncHDFCTransactions(ctx, email, func(current, t int) {
+	if err := syncService.SyncHDFCTransactions(ctx, email, user.ID.String(), func(current, t int) {
 		total = t
 	}); err != nil {
 		fail(err)
