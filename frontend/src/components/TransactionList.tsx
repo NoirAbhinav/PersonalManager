@@ -1,14 +1,26 @@
 import { Transaction } from '../types/transaction'
 import TransactionRow from './TransactionRow'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface TransactionListProps {
   transactions: Transaction[]
   isLoading?: boolean
   error?: string | null
+  page: number
+  totalPages: number
+  total: number
+  onPageChange: (page: number) => void
 }
 
-export default function TransactionList({ transactions, isLoading, error }: TransactionListProps) {
+export default function TransactionList({
+  transactions,
+  isLoading,
+  error,
+  page,
+  totalPages,
+  total,
+  onPageChange,
+}: TransactionListProps) {
   if (isLoading) {
     return (
       <div className="card">
@@ -40,12 +52,7 @@ export default function TransactionList({ transactions, isLoading, error }: Tran
     return (
       <div className="card text-center py-12">
         <div className="text-gray-500 mb-4">
-          <svg
-            className="w-12 h-12 mx-auto"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -62,14 +69,43 @@ export default function TransactionList({ transactions, isLoading, error }: Tran
 
   return (
     <div className="card p-0 overflow-hidden">
-      <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+      <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 flex items-center justify-between">
         <h2 className="font-semibold text-gray-900">Recent Transactions</h2>
+        <p className="text-sm text-gray-500">{total} total</p>
       </div>
+
       <div>
         {transactions.map((transaction) => (
-          <TransactionRow key={transaction.reference_id || transaction.id} transaction={transaction} />
+          <TransactionRow
+            key={transaction.reference_id || transaction.id}
+            transaction={transaction}
+          />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
+          <p className="text-sm text-gray-500">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page === 1}
+              className="p-1.5 rounded border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page === totalPages}
+              className="p-1.5 rounded border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

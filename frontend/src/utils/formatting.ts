@@ -7,29 +7,30 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  } catch {
-    return dateString
-  }
+export function formatDate(dateStr: string): string {
+  if (!dateStr) return ''
+
+  // Backend returns UTC without Z suffix — append it so browser converts correctly
+  const utcStr = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z'
+
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  }).format(new Date(utcStr))
 }
 
 export function formatTime(dateString: string): string {
   try {
-    const date = new Date(dateString)
+    const utcStr = dateString.endsWith('Z') ? dateString : dateString + 'Z'
     return new Intl.DateTimeFormat('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-    }).format(date)
+    }).format(new Date(utcStr))
   } catch {
     return dateString
   }

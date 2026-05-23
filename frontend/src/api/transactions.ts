@@ -2,28 +2,25 @@ import { Transaction, TransactionsResponse } from '../types/transaction'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
-export async function fetchTransactions(): Promise<Transaction[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/transactions`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch transactions')
-    }
-
-    const data: TransactionsResponse = await response.json()
-    console.log('Fetched transactions:', data.transactions)
-    return data.transactions || []
-  } catch (error) {
-    console.error('Error fetching transactions:', error)
-    throw error
-  }
+export interface PaginatedTransactions {
+  transactions: any[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
 }
+
+export async function fetchTransactions(page = 1, pageSize = 20): Promise<PaginatedTransactions> {
+  const res = await fetch(
+    `${API_BASE_URL}/transactions?page=${page}&page_size=${pageSize}`,
+    {
+      credentials: 'include',
+    }
+  )
+  if (!res.ok) throw new Error('Failed to fetch transactions')
+  return res.json()
+}
+
 
 export async function getTransactionStats(transactions: Transaction[]) {
   const debited = transactions

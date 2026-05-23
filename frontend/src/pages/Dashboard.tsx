@@ -7,7 +7,7 @@ import { CreditCard, TrendingDown, TrendingUp, ActivitySquare } from 'lucide-rea
 import { formatCurrency } from '../utils/formatting'
 
 export default function Dashboard() {
-  const { transactions, isLoading, error, refetch } = useTransactions()
+  const { transactions, isLoading, error, refetch, page, setPage, totalPages, total } = useTransactions()
   const stats = useTransactionStats(transactions)
 
   useEffect(() => {
@@ -85,8 +85,16 @@ export default function Dashboard() {
         </div>
 
         {/* Transactions List */}
-        <TransactionList transactions={transactions} isLoading={isLoading} error={error} />
-      </main>
+          <TransactionList
+            transactions={transactions}
+            isLoading={isLoading}
+            error={error}
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+          />      
+        </main>
     </div>
   )
 }

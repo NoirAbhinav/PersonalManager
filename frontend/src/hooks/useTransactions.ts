@@ -1,16 +1,20 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchTransactions } from '../api/transactions'
 import { Transaction } from '../types/transaction'
 
 export function useTransactions() {
-  const { data: transactions = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
-    staleTime: 60000, // 1 minute
+  const [page, setPage] = useState(1)
+  const pageSize = 20
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['transactions', page],
+    queryFn: () => fetchTransactions(page, pageSize),
+    staleTime: 60000,
     retry: 2,
   })
 
-  const normalized: Transaction[] = transactions.map((t: any) => ({
+  const normalized: Transaction[] = (data?.transactions ?? []).map((t: any) => ({
     id: t.ID,
     amount: t.Amount,
     type: t.Type,
@@ -20,14 +24,17 @@ export function useTransactions() {
     reference_id: t.ReferenceID,
     occurred_at: t.OccurredAt,
     created_at: t.CreatedAt,
-    updated_at: t.UpdatedAt,
-    }))
+  }))
 
   return {
     transactions: normalized,
     isLoading,
     error: error instanceof Error ? error.message : null,
     refetch,
+    page,
+    setPage,
+    totalPages: data?.total_pages ?? 1,
+    total: data?.total ?? 0,
   }
 }
 
