@@ -48,7 +48,9 @@ export async function getSyncStatus() {
   if (!res.ok) throw new Error('Failed to get sync status')
   return res.json() as Promise<{
     status: 'idle' | 'syncing' | 'completed' | 'failed'
+    progress_current: number
+    progress_total: number
+    fetching: boolean
     error?: string
-    updated_at?: string
   }>
 }

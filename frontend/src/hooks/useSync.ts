@@ -1,11 +1,17 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { syncGmailTransactions, getSyncStatus } from '../api/sync'
 
 type SyncStatus = 'idle' | 'syncing' | 'completed' | 'failed'
 
+interface Progress {
+  current: number
+  total: number
+}
+
 export function useSync(onSuccess?: () => void) {
   const [status, setStatus] = useState<SyncStatus>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState<Progress>({ current: 0, total: 0 })
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const stopPolling = () => {
@@ -16,10 +22,13 @@ export function useSync(onSuccess?: () => void) {
   }
 
   const startPolling = useCallback(() => {
+    if (pollRef.current) return // already polling
+
     pollRef.current = setInterval(async () => {
       try {
         const data = await getSyncStatus()
         setStatus(data.status)
+        setProgress({ current: data.progress_current, total: data.progress_total })
 
         if (data.status === 'completed') {
           stopPolling()
@@ -29,16 +38,39 @@ export function useSync(onSuccess?: () => void) {
           setError(data.error || 'Sync failed')
         }
       } catch (err) {
-        stopPolling()
-        setError('Failed to get sync status')
+        console.warn('Status poll failed, retrying...', err)
       }
     }, 2000)
   }, [onSuccess])
+
+  // On mount — check if a sync is already in progress from a previous session
+  useEffect(() => {
+    const checkOnMount = async () => {
+      try {
+        const data = await getSyncStatus()
+        setStatus(data.status)
+        setProgress({ current: data.progress_current, total: data.progress_total })
+
+        if (data.status === 'syncing') {
+          startPolling() // resume polling
+        } else if (data.status === 'completed') {
+          onSuccess?.()
+        }
+      } catch (err) {
+        console.warn('Initial status check failed', err)
+      }
+    }
+
+    checkOnMount()
+
+    return () => stopPolling() // cleanup on unmount
+  }, [])
 
   const sync = useCallback(async () => {
     try {
       setStatus('syncing')
       setError(null)
+      setProgress({ current: 0, total: 0 })
       await syncGmailTransactions()
       startPolling()
     } catch (err) {
@@ -47,5 +79,5 @@ export function useSync(onSuccess?: () => void) {
     }
   }, [startPolling])
 
-  return { sync, status, error }
+  return { sync, status, error, progress }
 }

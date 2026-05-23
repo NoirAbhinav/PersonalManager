@@ -14,6 +14,12 @@ export default {
         warning: '#f59e0b',
         info: '#06b6d4',
       },
+      keyframes: {
+      slide: {
+        '0%':   { transform: 'translateX(-100%)' },
+        '100%': { transform: 'translateX(350%)' },
+      }
+    },
     },
   },
   plugins: [],
