@@ -1,6 +1,14 @@
-import { Transaction, TransactionsResponse } from '../types/transaction'
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
+export interface TransactionFilters {
+  category_id?: string
+  type?: string
+  from?: string        // ISO string
+  to?: string          // ISO string
+  min_amount?: number
+  max_amount?: number
+  search?: string
+}
 
 export interface PaginatedTransactions {
   transactions: any[]
@@ -10,31 +18,26 @@ export interface PaginatedTransactions {
   total_pages: number
 }
 
-export async function fetchTransactions(page = 1, pageSize = 20): Promise<PaginatedTransactions> {
-  const res = await fetch(
-    `${API_BASE_URL}/transactions?page=${page}&page_size=${pageSize}`,
-    {
-      credentials: 'include',
-    }
-  )
+export async function fetchTransactions(
+  page = 1,
+  pageSize = 20,
+  filters: TransactionFilters = {}
+): Promise<PaginatedTransactions> {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('page_size', String(pageSize))
+
+  if (filters.category_id) params.set('category_id', filters.category_id)
+  if (filters.type)        params.set('type', filters.type)
+  if (filters.from)        params.set('from', filters.from)
+  if (filters.to)          params.set('to', filters.to)
+  if (filters.min_amount != null) params.set('min_amount', String(filters.min_amount))
+  if (filters.max_amount != null) params.set('max_amount', String(filters.max_amount))
+  if (filters.search)      params.set('search', filters.search)
+
+  const res = await fetch(`${API_BASE_URL}/transactions?${params.toString()}`, {
+    credentials: 'include',
+  })
   if (!res.ok) throw new Error('Failed to fetch transactions')
   return res.json()
-}
-
-
-export async function getTransactionStats(transactions: Transaction[]) {
-  const debited = transactions
-    .filter((t) => t.type === 'debited')
-    .reduce((sum, t) => sum + t.amount, 0)
-
-  const credited = transactions
-    .filter((t) => t.type === 'credited')
-    .reduce((sum, t) => sum + t.amount, 0)
-
-  return {
-    totalDebited: debited,
-    totalCredited: credited,
-    netAmount: credited - debited,
-    transactionCount: transactions.length,
-  }
 }

@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import Categories from './pages/Categories'
+
 import { useAuth } from './hooks/useAuth'
 
 const queryClient = new QueryClient()
@@ -26,6 +28,10 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/categories"
+        element={isAuthenticated ? <Categories /> : <Navigate to="/login" />}
       />
       <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
     </Routes>

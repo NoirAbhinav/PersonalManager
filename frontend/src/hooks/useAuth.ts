@@ -10,21 +10,21 @@ export function useAuth() {
     const initAuth = async () => {
       setIsLoading(true)
       try {
-        // Fast check first — no network call
         if (!checkCookie()) {
           setIsAuthenticated(false)
           return
         }
 
-        // Cookie exists — verify with backend and get email
         const auth = await checkAuthStatus()
         setIsAuthenticated(auth.isAuthenticated)
         setEmail(auth.email)
-      } catch (error) {
-        console.error('Auth check failed:', error)
+
+        // If /api/me returned 401, cookie was cleared above
+        // isAuthenticated is false, router will redirect to /login
+      } catch {
         setIsAuthenticated(false)
       } finally {
-        setIsLoading(false)
+        setIsLoading(false) // always unblock the UI
       }
     }
 

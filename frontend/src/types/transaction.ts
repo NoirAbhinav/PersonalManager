@@ -9,6 +9,8 @@ export interface Transaction {
   occurred_at: string
   created_at?: string
   updated_at?: string
+  category_name: string
+  category_color: string
 }
 
 export interface TransactionsResponse {

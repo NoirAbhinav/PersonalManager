@@ -20,15 +20,21 @@ export function logout() {
 export async function checkAuthStatus(): Promise<AuthState> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/me`, {
-      credentials: 'include', // sends session_user cookie
+      credentials: 'include',
     })
 
-    if (response.ok) {
-      const data = await response.json()
-      return { isAuthenticated: true, email: data.email }
+    if (response.status === 401) {
+      // Session expired or invalid — clear the frontend cookie and force re-login
+      document.cookie = 'is_authenticated=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      return { isAuthenticated: false }
     }
 
-    return { isAuthenticated: false }
+    if (!response.ok) {
+      return { isAuthenticated: false }
+    }
+
+    const data = await response.json()
+    return { isAuthenticated: true, email: data.email }
   } catch {
     return { isAuthenticated: false }
   }

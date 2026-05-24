@@ -1,6 +1,7 @@
 import { Transaction } from '../types/transaction'
 import { formatCurrency, formatDate } from '../utils/formatting'
 import { ArrowDown, ArrowUp } from 'lucide-react'
+import CategoryBadge from './CategoryBadge'
 
 interface TransactionRowProps {
   transaction: Transaction
@@ -32,16 +33,20 @@ export default function TransactionRow({ transaction }: TransactionRowProps) {
         </div>
       </div>
 
-      <div className="text-right">
-        <p
-          className={`font-semibold text-lg ${isDebited ? 'text-red-600' : 'text-green-600'}`}
-        >
-          {isDebited ? '-' : '+'}
-          {formatCurrency(transaction.amount)}
-        </p>
-        {transaction.reference_id && (
-          <p className="text-xs text-gray-500 mt-1">Ref: {transaction.reference_id}</p>
-        )}
+      <div className="flex items-center space-x-4">
+        <CategoryBadge
+          name={transaction.category_name}
+          color={transaction.category_color}
+        />
+        <div className="text-right">
+          <p className={`font-semibold text-lg ${isDebited ? 'text-red-600' : 'text-green-600'}`}>
+            {isDebited ? '-' : '+'}
+            {formatCurrency(transaction.amount)}
+          </p>
+          {transaction.reference_id && (
+            <p className="text-xs text-gray-500 mt-1">Ref: {transaction.reference_id}</p>
+          )}
+        </div>
       </div>
     </div>
   )

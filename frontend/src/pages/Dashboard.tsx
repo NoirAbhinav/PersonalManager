@@ -1,54 +1,48 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import TransactionList from '../components/TransactionList'
 import SyncButton from '../components/SyncButton'
+import FilterBar from '../components/FilterBar'
 import { useTransactions, useTransactionStats } from '../hooks/useTransactions'
+import { useCategories } from '../hooks/useCategories'
+
+import { TransactionFilters } from '../api/transactions'
 import { CreditCard, TrendingDown, TrendingUp, ActivitySquare } from 'lucide-react'
 import { formatCurrency } from '../utils/formatting'
 
 export default function Dashboard() {
-  const { transactions, isLoading, error, refetch, page, setPage, totalPages, total } = useTransactions()
+  const [filters, setFilters] = useState<TransactionFilters>({})
+
+  const { transactions, isLoading, error, refetch, page, setPage, totalPages, total } =
+    useTransactions(filters)
+  const { categories } = useCategories()
   const stats = useTransactionStats(transactions)
 
+  // Reset to page 1 when filters change
   useEffect(() => {
-    const interval = setInterval(() => {
-      refetch()
-    }, 60000) // Refresh every minute
+    setPage(1)
+  }, [filters])
 
+  useEffect(() => {
+    const interval = setInterval(() => refetch(), 60000)
     return () => clearInterval(interval)
   }, [refetch])
 
+  const handleFiltersChange = (newFilters: TransactionFilters) => {
+    setFilters(newFilters)
+  }
+
   const statCards = [
-    {
-      icon: TrendingDown,
-      label: 'Total Debited',
-      value: formatCurrency(stats.totalDebited),
-      color: 'red',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Total Credited',
-      value: formatCurrency(stats.totalCredited),
-      color: 'green',
-    },
-    {
-      icon: CreditCard,
-      label: 'Net Amount',
-      value: formatCurrency(stats.netAmount),
-      color: stats.netAmount >= 0 ? 'green' : 'red',
-    },
-    {
-      icon: ActivitySquare,
-      label: 'Transactions',
-      value: stats.transactionCount.toString(),
-      color: 'blue',
-    },
+    { icon: TrendingDown,    label: 'Total Debited',  value: formatCurrency(stats.totalDebited),  color: 'red' },
+    { icon: TrendingUp,      label: 'Total Credited', value: formatCurrency(stats.totalCredited), color: 'green' },
+    { icon: CreditCard,      label: 'Net Amount',     value: formatCurrency(stats.netAmount),     color: stats.netAmount >= 0 ? 'green' : 'red' },
+    { icon: ActivitySquare,  label: 'Transactions',   value: stats.transactionCount.toString(),   color: 'blue' },
   ]
 
   const colorClasses = {
-    red: 'bg-red-100 text-red-600',
+    red:   'bg-red-100 text-red-600',
     green: 'bg-green-100 text-green-600',
-    blue: 'bg-blue-100 text-blue-600',
+    blue:  'bg-blue-100 text-blue-600',
   }
 
   return (
@@ -56,7 +50,7 @@ export default function Dashboard() {
       <Header title="Dashboard" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((stat, index) => {
             const Icon = stat.icon
@@ -76,7 +70,7 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* Sync Section */}
+        {/* Sync */}
         <div className="mb-8">
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Synchronization</h2>
@@ -84,17 +78,24 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Transactions List */}
-          <TransactionList
-            transactions={transactions}
-            isLoading={isLoading}
-            error={error}
-            page={page}
-            totalPages={totalPages}
-            total={total}
-            onPageChange={setPage}
-          />      
-        </main>
+        {/* Filters */}
+        <FilterBar
+          filters={filters}
+          onChange={handleFiltersChange}
+          categories={categories ?? []}
+        />
+
+        {/* Transactions */}
+        <TransactionList
+          transactions={transactions}
+          isLoading={isLoading}
+          error={error}
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          onPageChange={setPage}
+        />
+      </main>
     </div>
   )
 }

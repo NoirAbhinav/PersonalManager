@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchTransactions } from '../api/transactions'
+import { fetchTransactions, TransactionFilters } from '../api/transactions'
 import { Transaction } from '../types/transaction'
 
-export function useTransactions() {
+export function useTransactions(filters: TransactionFilters = {}) {
   const [page, setPage] = useState(1)
   const pageSize = 20
 
+  const setPageAndReset = (p: number) => setPage(p)
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['transactions', page],
-    queryFn: () => fetchTransactions(page, pageSize),
+    queryKey: ['transactions', page, filters],
+    queryFn: () => fetchTransactions(page, pageSize, filters),
     staleTime: 60000,
     retry: 2,
   })
@@ -24,6 +26,8 @@ export function useTransactions() {
     reference_id: t.ReferenceID,
     occurred_at: t.OccurredAt,
     created_at: t.CreatedAt,
+    category_name: t.CategoryName,
+    category_color: t.CategoryColor,
   }))
 
   return {
@@ -32,7 +36,7 @@ export function useTransactions() {
     error: error instanceof Error ? error.message : null,
     refetch,
     page,
-    setPage,
+    setPage: setPageAndReset,
     totalPages: data?.total_pages ?? 1,
     total: data?.total ?? 0,
   }
