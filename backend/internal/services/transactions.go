@@ -20,11 +20,11 @@ func NewTransactionService(
 }
 
 type TransactionsResult struct {
-	Transactions []sqlc.Transaction `json:"transactions"`
-	Total        int64              `json:"total"`
-	Page         int32              `json:"page"`
-	PageSize     int32              `json:"page_size"`
-	TotalPages   int32              `json:"total_pages"`
+	Transactions []sqlc.GetTransactionsByUserIDRow `json:"transactions"`
+	Total        int64                             `json:"total"`
+	Page         int32                             `json:"page"`
+	PageSize     int32                             `json:"page_size"`
+	TotalPages   int32                             `json:"total_pages"`
 }
 
 func (s *TransactionService) GetTransactions(
@@ -32,6 +32,7 @@ func (s *TransactionService) GetTransactions(
 	userID string,
 	page int32,
 	pageSize int32,
+	filters repositories.TransactionFilters,
 ) (*TransactionsResult, error) {
 	if page < 1 {
 		page = 1
@@ -42,12 +43,12 @@ func (s *TransactionService) GetTransactions(
 
 	offset := (page - 1) * pageSize
 
-	txns, err := s.transactionRepository.GetByUserID(ctx, userID, pageSize, offset)
+	txns, err := s.transactionRepository.GetByUserID(ctx, userID, pageSize, offset, filters)
 	if err != nil {
 		return nil, err
 	}
 
-	total, err := s.transactionRepository.CountByUserID(ctx, userID)
+	total, err := s.transactionRepository.CountByUserID(ctx, userID, filters)
 	if err != nil {
 		return nil, err
 	}

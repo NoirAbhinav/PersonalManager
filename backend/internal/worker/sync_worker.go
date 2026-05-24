@@ -24,6 +24,7 @@ type SyncWorker struct {
 	userRepository        *repositories.UserRepository
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
+	categorizationService *services.CategorizationService
 
 	statuses map[string]*SyncStatus
 	queue    chan string
@@ -36,6 +37,7 @@ func NewSyncWorker(
 	userRepository *repositories.UserRepository,
 	transactionRepository *repositories.TransactionRepository,
 	syncStateRepository *repositories.SyncStateRepository,
+	categorizationService *services.CategorizationService,
 ) *SyncWorker {
 	return &SyncWorker{
 		OAuthConfig:           oauthConfig,
@@ -43,6 +45,7 @@ func NewSyncWorker(
 		userRepository:        userRepository,
 		transactionRepository: transactionRepository,
 		syncStateRepository:   syncStateRepository,
+		categorizationService: categorizationService,
 		statuses:              make(map[string]*SyncStatus),
 		queue:                 make(chan string, 100),
 	}
@@ -139,6 +142,7 @@ func (w *SyncWorker) process(ctx context.Context, email string) {
 		gmailService,
 		w.transactionRepository,
 		w.syncStateRepository,
+		w.categorizationService,
 	)
 
 	var total int

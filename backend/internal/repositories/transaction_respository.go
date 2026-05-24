@@ -5,11 +5,22 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/NoirAbhinav/personalmanager/internal/db/sqlc"
 	"github.com/NoirAbhinav/personalmanager/internal/transactions"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type TransactionFilters struct {
+	CategoryID *string
+	Type       *string
+	From       *time.Time
+	To         *time.Time
+	MinAmount  *float64
+	MaxAmount  *float64
+	Search     *string
+}
 
 type TransactionRepository struct {
 	queries *sqlc.Queries
@@ -40,22 +51,67 @@ func (r *TransactionRepository) GetByUserID(
 	userID string,
 	limit int32,
 	offset int32,
-) ([]sqlc.Transaction, error) {
+	f TransactionFilters,
+) ([]sqlc.GetTransactionsByUserIDRow, error) {
 	return r.queries.GetTransactionsByUserID(ctx, sqlc.GetTransactionsByUserIDParams{
-		UserID: pgtype.UUID{Bytes: uuidFromString(userID), Valid: true},
-		Limit:  limit,
-		Offset: offset,
+		UserID:     pgtype.UUID{Bytes: uuidFromString(userID), Valid: true},
+		Limit:      limit,
+		Offset:     offset,
+		CategoryID: optionalUUID(f.CategoryID),
+		Type:       optionalText(f.Type),
+		From:       optionalTimestamptz(f.From),
+		To:         optionalTimestamptz(f.To),
+		MinAmount:  optionalFloat8(f.MinAmount),
+		MaxAmount:  optionalFloat8(f.MaxAmount),
+		Search:     optionalText(f.Search),
 	})
 }
 
 func (r *TransactionRepository) CountByUserID(
 	ctx context.Context,
 	userID string,
+	f TransactionFilters,
 ) (int64, error) {
-	return r.queries.CountTransactionsByUserID(ctx, pgtype.UUID{
-		Bytes: uuidFromString(userID),
-		Valid: true,
+	return r.queries.CountTransactionsByUserID(ctx, sqlc.CountTransactionsByUserIDParams{
+		UserID:     pgtype.UUID{Bytes: uuidFromString(userID), Valid: true},
+		CategoryID: optionalUUID(f.CategoryID),
+		Type:       optionalText(f.Type),
+		From:       optionalTimestamptz(f.From),
+		To:         optionalTimestamptz(f.To),
+		MinAmount:  optionalFloat8(f.MinAmount),
+		MaxAmount:  optionalFloat8(f.MaxAmount),
+		Search:     optionalText(f.Search),
 	})
+}
+
+// helpers
+
+func optionalUUID(s *string) pgtype.UUID {
+	if s == nil || *s == "" {
+		return pgtype.UUID{Valid: false}
+	}
+	return pgtype.UUID{Bytes: uuidFromString(*s), Valid: true}
+}
+
+func optionalText(s *string) pgtype.Text {
+	if s == nil || *s == "" {
+		return pgtype.Text{Valid: false}
+	}
+	return pgtype.Text{String: *s, Valid: true}
+}
+
+func optionalTimestamptz(t *time.Time) pgtype.Timestamptz {
+	if t == nil {
+		return pgtype.Timestamptz{Valid: false}
+	}
+	return pgtype.Timestamptz{Time: *t, Valid: true}
+}
+
+func optionalFloat8(f *float64) pgtype.Float8 {
+	if f == nil {
+		return pgtype.Float8{Valid: false}
+	}
+	return pgtype.Float8{Float64: *f, Valid: true}
 }
 
 func uuidFromString(s string) [16]byte {

@@ -16,17 +16,21 @@ type GmailSyncService struct {
 	gmailService          *gmail.Service
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
+	categorizationService *CategorizationService // add this
+
 }
 
 func NewGmailSyncService(
 	gmailService *gmail.Service,
 	transactionRepository *repositories.TransactionRepository,
 	syncStateRepository *repositories.SyncStateRepository,
+	categorizationService *CategorizationService,
 ) *GmailSyncService {
 	return &GmailSyncService{
 		gmailService:          gmailService,
 		transactionRepository: transactionRepository,
 		syncStateRepository:   syncStateRepository,
+		categorizationService: categorizationService,
 	}
 }
 
@@ -135,6 +139,12 @@ func (s *GmailSyncService) processEmails(
 		if onProgress != nil {
 			onProgress(i+1, total)
 		}
+	}
+
+	// Run categorization after all emails are inserted
+	// Non-fatal — a categorization failure shouldn't fail the whole sync
+	if _, err := s.categorizationService.CategorizeAll(ctx, userID); err != nil {
+		log.Printf("gmail sync: categorization failed for %s: %v", userID, err)
 	}
 
 	return nil

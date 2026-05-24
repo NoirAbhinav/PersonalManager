@@ -19,6 +19,7 @@ type AuthHandler struct {
 	userRepository        *repositories.UserRepository
 	transactionRepository *repositories.TransactionRepository
 	syncStateRepository   *repositories.SyncStateRepository
+	categorizationService *services.CategorizationService
 }
 
 func NewAuthHandler(
@@ -27,6 +28,7 @@ func NewAuthHandler(
 	oauthRepository *repositories.OAuthRepository,
 	syncStateRepository *repositories.SyncStateRepository,
 	userRepository *repositories.UserRepository,
+	categorizationService *services.CategorizationService,
 ) *AuthHandler {
 	return &AuthHandler{
 		OAuthConfig:           oauthConfig,
@@ -34,6 +36,7 @@ func NewAuthHandler(
 		oauthRepository:       oauthRepository,
 		syncStateRepository:   syncStateRepository,
 		userRepository:        userRepository,
+		categorizationService: categorizationService,
 	}
 }
 
@@ -128,6 +131,7 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 			gmailService,
 			h.transactionRepository,
 			h.syncStateRepository,
+			h.categorizationService,
 		)
 		if err = syncService.SyncHDFCTransactions(ctx, email, user.ID.String(), nil); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

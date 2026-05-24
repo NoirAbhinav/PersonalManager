@@ -58,6 +58,17 @@ func main() {
 	// OAuth config
 	oauthConfig := auth.NewGoogleOAuthConfig(cfg)
 
+	categoryRepository := repositories.NewCategoryRepository(queries)
+
+	// Services
+	categoryService := services.NewCategoryService(categoryRepository)
+	categorizationService := services.NewCategorizationService(categoryRepository, transactionRepository)
+
+	// Handler
+	categoryHandler := api.NewCategoryHandler(categoryService, categorizationService, userRepository)
+
+	// Routes
+
 	// Initialize handlers
 	authHandler := api.NewAuthHandler(
 		oauthConfig,
@@ -65,6 +76,7 @@ func main() {
 		oathRepository,
 		syncStateRepository,
 		userRepository,
+		categorizationService,
 	)
 
 	transactionHandler := api.NewTransactionHandler(
@@ -78,6 +90,7 @@ func main() {
 		userRepository,
 		transactionRepository,
 		syncStateRepository,
+		categorizationService,
 	)
 
 	syncHandler := api.NewSyncHandler(
@@ -101,6 +114,15 @@ func main() {
 		MaxAge:           86400,
 	}))
 
+	r.GET("/categories", categoryHandler.GetCategories)
+	r.POST("/categories", categoryHandler.CreateCategory)
+	r.PUT("/categories/:id", categoryHandler.UpdateCategory)
+	r.DELETE("/categories/:id", categoryHandler.DeleteCategory)
+	r.GET("/categories/:id/rules", categoryHandler.GetRules)
+	r.POST("/categories/:id/rules", categoryHandler.AddRule)
+	r.DELETE("/categories/:id/rules/:rule_id", categoryHandler.DeleteRule)
+	r.POST("/transactions/:id/category", categoryHandler.SetTransactionCategory)
+	r.POST("/transactions/recategorize", categoryHandler.RecategorizeAll)
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

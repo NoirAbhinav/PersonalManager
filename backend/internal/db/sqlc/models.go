@@ -8,6 +8,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Category struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	Name      string
+	Color     string
+	IsSystem  bool
+	CreatedAt pgtype.Timestamp
+}
+
+type CategoryRule struct {
+	ID         pgtype.UUID
+	CategoryID pgtype.UUID
+	Keyword    string
+	CreatedAt  pgtype.Timestamp
+}
+
 type OauthIntegration struct {
 	ID           pgtype.UUID
 	Provider     string
@@ -43,6 +59,7 @@ type Transaction struct {
 	OccurredAt   pgtype.Timestamp
 	CreatedAt    pgtype.Timestamp
 	UserID       pgtype.UUID
+	CategoryID   pgtype.UUID
 }
 
 type User struct {
