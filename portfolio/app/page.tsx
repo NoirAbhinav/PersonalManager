@@ -1,36 +1,23 @@
-// import Navbar     from '@/components/Navbar'
-import Hero       from '@/components/Hero'
-// import About      from '@/components/About'
-// import Experience from '@/components/Experience'
-// import Skills     from '@/components/Skills'
-// import Projects   from '@/components/Projects'
-// import Contact    from '@/components/Contact'
+import AnimatedBackground from '@/components/AnimatedBackground'
+import Navbar from '@/components/Navbar'
+import Hero from '@/components/Hero'
+import About from '@/components/About'
+import Experience from '@/components/Experience'
+import Skills from '@/components/Skills'
+import Contact from '@/components/Contact'
 
 export default function Home() {
   return (
-    <main>
-      {/* <Navbar /> */}
-      <Hero />
-
-      {/* <div id="about">
+    <>
+      <AnimatedBackground />
+      <Navbar />
+      <main style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+        <Hero />
         <About />
-      </div>
-
-      <div id="experience">
         <Experience />
-      </div>
-
-      <div id="skills">
         <Skills />
-      </div>
-
-      <div id="projects">
-        <Projects />
-      </div>
-
-      <div id="contact">
         <Contact />
-      </div> */}
-    </main>
+      </main>
+    </>
   )
 }

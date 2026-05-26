@@ -1,37 +1,109 @@
-// components/Hero.tsx
 'use client'
-import { useEffect, useState } from 'react'
 
-const lines = [
-  '> Initializing portfolio...',
-  '> Loading: Abhinav Nair',
-  '> Role: Senior Backend Engineer',
-  '> Stack: Python · Rust · AWS · AI',
-  '> Systems serving 500k+ users',
-  '> Status: Open to opportunities_',
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { ChevronDown, Mail } from 'lucide-react'
+import { Github, Linkedin } from '@/components/Icons'
+
+const bootLines = [
+  { text: '> Initializing system...', delay: 0 },
+  { text: '> Loading profile: Abhinav Nair', delay: 400 },
+  { text: '> Role: Senior Backend Engineer', delay: 800 },
+  { text: '> Stack: Python · Rust · AWS · GenAI', delay: 1200 },
+  { text: '> Status: Systems operational ✓', delay: 1600 },
+]
+
+const stats = [
+  { value: '3+', label: 'Years' },
+  { value: '500k+', label: 'Users Served' },
+  { value: '20k', label: 'Events/sec' },
+  { value: '15+', label: 'Services' },
 ]
 
 export default function Hero() {
-  const [visible, setVisible] = useState<string[]>([])
+  const [visibleLines, setVisibleLines] = useState(0)
+  const [showContent, setShowContent] = useState(false)
 
   useEffect(() => {
-    lines.forEach((line, i) => {
-      setTimeout(() => {
-        setVisible(prev => [...prev, line])
-      }, i * 400)
-    })
+    bootLines.forEach((_, i) => setTimeout(() => setVisibleLines(i + 1), bootLines[i].delay))
+    setTimeout(() => setShowContent(true), 2000)
   }, [])
 
   return (
-    <section className="min-h-screen flex items-center px-8 py-24">
-      <div className="max-w-3xl">
-        {visible.map((line, i) => (
-          <p key={i} className="text-green-400 font-mono text-lg mb-2
-                                animate-fade-in">
-            {line}
+    <section id="hero" className="hero-section">
+      <div className="hero-radial" />
+
+      <div className="section-container" style={{ position: 'relative', zIndex: 1 }}>
+        {/* Terminal boot */}
+        <div className="boot-lines">
+          <div className="terminal-bar">
+            <span className="terminal-dot" style={{ background: '#ff5f56' }} />
+            <span className="terminal-dot" style={{ background: '#ffbd2e' }} />
+            <span className="terminal-dot" style={{ background: '#27c93f' }} />
+            <span className="terminal-label">terminal</span>
+          </div>
+          {bootLines.map((line, i) => (
+            <motion.p key={i} initial={{ opacity: 0, x: -8 }}
+              animate={i < visibleLines ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.25 }}
+              className={`boot-line${i === bootLines.length - 1 ? ' active' : ''}`}>
+              {line.text}
+              {i === visibleLines - 1 && !showContent && (
+                <span className="animate-blink" style={{ color: 'var(--color-green)', marginLeft: 4 }}>█</span>
+              )}
+            </motion.p>
+          ))}
+        </div>
+
+        {/* Main content */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={showContent ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, ease: 'easeOut' }}>
+          <h1 className="hero-name">
+            <span style={{ color: 'var(--color-text)' }}>Abhinav</span><br />
+            <span className="text-green text-glow-green">Nair</span>
+          </h1>
+          <p className="hero-role">Senior Backend Engineer</p>
+          <p className="hero-desc">
+            Building high-throughput distributed systems in Python &amp; Rust,
+            serving 500k+ users across production microservice environments on AWS.
           </p>
-        ))}
+
+          <div className="stats-row">
+            {stats.map((s) => (
+              <div key={s.label} className="stat-item">
+                <div className="stat-value">{s.value}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hero-cta">
+            <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary">
+              Download Resume
+            </a>
+            <button className="btn-outline"
+              onClick={() => document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' })}>
+              View Experience
+            </button>
+            <div className="hero-socials">
+              <a href="https://github.com/NoirAbhinav" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="GitHub">
+                <Github size={20} />
+              </a>
+              <a href="https://linkedin.com/in/abhinav-nair-n3747" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn">
+                <Linkedin size={20} />
+              </a>
+              <a href="mailto:abhinavbbps2000@gmail.com" className="social-link" aria-label="Email">
+                <Mail size={20} />
+              </a>
+            </div>
+          </div>
+        </motion.div>
       </div>
+
+      <motion.div initial={{ opacity: 0 }} animate={showContent ? { opacity: 1 } : {}}
+        transition={{ delay: 1 }} className="scroll-indicator">
+        <ChevronDown size={24} />
+      </motion.div>
     </section>
   )
 }
