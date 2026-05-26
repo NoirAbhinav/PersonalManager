@@ -1,0 +1,63 @@
+/* ─── Google Fonts ─────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700&display=swap');
+
+/* ─── Design tokens ──────────────────────────────── */
+:root {
+  --bg:         #0a0a0a;
+  --surface:    #111111;
+  --surface-2:  #161616;
+  --border:     #1f1f1f;
+  --border-hl:  #2a2a2a;
+  --green:      #00ff88;
+  --green-dim:  #00cc6a;
+  --amber:      #ffb300;
+  --amber-dim:  #cc8f00;
+  --blue:       #79b8ff;
+  --text:       #e2e2e2;
+  --text-dim:   #888;
+  --muted:      #444;
+  --font-mono:  'JetBrains Mono', monospace;
+  --font-sans:  'Syne', sans-serif;
+}
+
+/* ─── Reset & base ───────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Selection ──────────────────────────────────── */
+::selection {
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--green);
+}
+
+/* ─── Utility classes ────────────────────────────── */
+.mono  { font-family: var(--font-mono); }
+.sans  { font-family: var(--font-sans); }
+.green { color: var(--green); }
+.amber { color: var(--amber); }
+.dim   { color: var(--text-dim); }
+
+/* ─── Section spacing ────────────────────────────── */
+section {
+  padding: 80px 0;
+}
