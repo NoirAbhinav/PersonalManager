@@ -14,6 +14,7 @@ type Config struct {
 	GoogleClientSecret string
 	GoogleRedirectURL  string
 	DatabaseURL        string
+	GeminiAPIKey       string
 }
 
 func getEnv(key string, fallback string) string {
@@ -41,6 +42,7 @@ func Load() *Config {
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
 	}
 
 	return cfg

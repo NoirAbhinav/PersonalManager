@@ -1,170 +1,18 @@
 package main
 
 import (
-	"context"
 	"log"
-	"net/http"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-
-	"github.com/NoirAbhinav/personalmanager/internal/api"
-	"github.com/NoirAbhinav/personalmanager/internal/auth"
-	"github.com/NoirAbhinav/personalmanager/internal/config"
-	"github.com/NoirAbhinav/personalmanager/internal/db"
-	"github.com/NoirAbhinav/personalmanager/internal/db/sqlc"
-	"github.com/NoirAbhinav/personalmanager/internal/repositories"
-	"github.com/NoirAbhinav/personalmanager/internal/services"
-	"github.com/NoirAbhinav/personalmanager/internal/worker"
+	"github.com/NoirAbhinav/personalmanager/internal/app"
 )
 
 func main() {
-
-	// Load config
-	cfg := config.Load()
-
-	// Initialize postgres
-	postgresDB, err := db.NewPostgres(
-		cfg.DatabaseURL,
-	)
-
+	a, err := app.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Initialize sqlc queries
-	queries := sqlc.New(postgresDB)
-
-	// Initialize repositories
-	transactionRepository := repositories.NewTransactionRepository(
-		queries,
-	)
-	oathRepository := repositories.NewOAuthRepository(
-		queries,
-	)
-	syncStateRepository := repositories.NewSyncStateRepository(
-		queries,
-	)
-
-	// Initialize services
-	transactionService := services.NewTransactionService(
-		transactionRepository,
-	)
-
-	userRepository := repositories.NewUserRepository(
-		queries,
-	)
-
-	// OAuth config
-	oauthConfig := auth.NewGoogleOAuthConfig(cfg)
-
-	categoryRepository := repositories.NewCategoryRepository(queries)
-
-	// Services
-	categoryService := services.NewCategoryService(categoryRepository)
-	categorizationService := services.NewCategorizationService(categoryRepository, transactionRepository)
-
-	// Handler
-	categoryHandler := api.NewCategoryHandler(categoryService, categorizationService, userRepository)
-
-	// Routes
-
-	// Initialize handlers
-	authHandler := api.NewAuthHandler(
-		oauthConfig,
-		transactionRepository,
-		oathRepository,
-		syncStateRepository,
-		userRepository,
-		categorizationService,
-	)
-
-	transactionHandler := api.NewTransactionHandler(
-		transactionService,
-		userRepository,
-	)
-
-	syncWorker := worker.NewSyncWorker(
-		oauthConfig,
-		oathRepository,
-		userRepository,
-		transactionRepository,
-		syncStateRepository,
-		categorizationService,
-	)
-
-	syncHandler := api.NewSyncHandler(
-		syncWorker,
-	)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go syncWorker.Start(ctx)
-
-	// Setup router
-	r := gin.Default()
-
-	// Configure CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length", "Location"}, // added Location
-		AllowCredentials: true,
-		MaxAge:           86400,
-	}))
-
-	r.GET("/categories", categoryHandler.GetCategories)
-	r.POST("/categories", categoryHandler.CreateCategory)
-	r.PUT("/categories/:id", categoryHandler.UpdateCategory)
-	r.DELETE("/categories/:id", categoryHandler.DeleteCategory)
-	r.GET("/categories/:id/rules", categoryHandler.GetRules)
-	r.POST("/categories/:id/rules", categoryHandler.AddRule)
-	r.DELETE("/categories/:id/rules/:rule_id", categoryHandler.DeleteRule)
-	r.POST("/transactions/:id/category", categoryHandler.SetTransactionCategory)
-	r.POST("/transactions/recategorize", categoryHandler.RecategorizeAll)
-	// Health check
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
-	})
-
-	// Auth routes
-	r.GET(
-		"/auth/google/login",
-		authHandler.GoogleLogin,
-	)
-
-	r.GET("/api/me", authHandler.Me)
-
-	r.GET("/auth/logout", authHandler.Logout)
-
-	r.GET(
-		"/auth/google/callback",
-		authHandler.GoogleCallback,
-	)
-
-	// Transaction routes
-	r.GET(
-		"/transactions",
-		transactionHandler.GetTransactions,
-	)
-
-	r.POST(
-		"/sync/gmail",
-		syncHandler.SyncGmail,
-	)
-
-	r.GET("/sync/status", syncHandler.GetSyncStatus)
-
-	// Start server
-	log.Printf("server running on port %s", cfg.Port)
-
-	err = r.Run(":" + cfg.Port)
-
-	if err != nil {
+	if err := a.Run(); err != nil {
 		log.Fatal(err)
 	}
-
 }
