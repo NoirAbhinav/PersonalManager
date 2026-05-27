@@ -57,21 +57,30 @@ resource "oci_core_security_list" "sl" {
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 22; max = 22 }
+    tcp_options {
+    min = 22
+    max = 22
+    }
   }
 
   # HTTP
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 80; max = 80 }
+    tcp_options { 
+        min = 80
+        max = 80 
+    }
   }
 
   # HTTPS
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 443; max = 443 }
+    tcp_options { 
+        min = 443 
+        max = 443 
+    }
   }
 }
 
@@ -105,8 +114,8 @@ resource "oci_core_instance" "portfolio_server" {
   shape               = "VM.Standard.A1.Flex"
 
   shape_config {
-    ocpus         = 2      # up to 4 total for free
-    memory_in_gbs = 12     # up to 24 total for free
+    ocpus         = 2    # up to 4 total for free
+    memory_in_gbs = 4     # up to 24 total for free
   }
 
   source_details {
