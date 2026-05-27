@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronDown, Mail } from 'lucide-react'
+import { ChevronDown, Mail, MapPin } from 'lucide-react'
 import { Github, Linkedin } from '@/components/Icons'
 
 const bootLines = [
@@ -13,12 +13,23 @@ const bootLines = [
   { text: '> Status: Systems operational ✓', delay: 1600 },
 ]
 
-const stats = [
-  { value: '3+', label: 'Years' },
-  { value: '500k+', label: 'Users Served' },
-  { value: '20k', label: 'Events/sec' },
-  { value: '15+', label: 'Services' },
+const stack = [
+  { label: 'Python',     color: 'green' },
+  { label: 'Rust',       color: 'green' },
+  { label: 'AWS',        color: 'amber' },
+  { label: 'GenAI',      color: 'amber' },
+  { label: 'FastAPI',    color: 'plain' },
+  { label: 'Django',     color: 'plain' },
+  { label: 'Docker',     color: 'plain' },
+  { label: 'Kubernetes', color: 'plain' },
+  { label: 'PostgreSQL', color: 'plain' },
 ]
+
+const badgeStyle: Record<string, React.CSSProperties> = {
+  green: { borderColor: 'rgba(0,255,136,0.25)', color: 'var(--color-green)', background: 'rgba(0,255,136,0.05)' },
+  amber: { borderColor: 'rgba(255,179,0,0.25)',  color: 'var(--color-amber)', background: 'rgba(255,179,0,0.05)'  },
+  plain: { borderColor: 'var(--color-border)',   color: 'var(--color-text-dim)', background: 'rgba(255,255,255,0.02)' },
+}
 
 export default function Hero() {
   const [visibleLines, setVisibleLines] = useState(0)
@@ -58,25 +69,58 @@ export default function Hero() {
         {/* Main content */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={showContent ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: 'easeOut' }}>
+
           <h1 className="hero-name">
             <span style={{ color: 'var(--color-text)' }}>Abhinav</span><br />
             <span className="text-green text-glow-green">Nair</span>
           </h1>
-          <p className="hero-role">Senior Backend Engineer</p>
+
+          {/* Role + location */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+            <p className="hero-role" style={{ marginBottom: 0 }}>Senior Backend Engineer</p>
+            <span style={{ color: 'var(--color-border-hl)', fontSize: '1.2rem' }}>·</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--color-muted)', fontSize: '0.9rem' }}>
+              <MapPin size={13} />
+              Affinsys.ai · Bengaluru, IN
+            </span>
+          </div>
+
+          {/* Tagline */}
+          <p style={{
+            borderLeft: '2px solid var(--color-green)',
+            paddingLeft: 16,
+            color: 'var(--color-text-dim)',
+            fontSize: '1rem',
+            fontStyle: 'italic',
+            marginBottom: 28,
+            lineHeight: 1.6,
+          }}>
+            Building calm, reliable systems behind chaotic workloads.
+          </p>
+
           <p className="hero-desc">
             Building high-throughput distributed systems in Python &amp; Rust,
             serving 500k+ users across production microservice environments on AWS.
           </p>
 
-          <div className="stats-row">
-            {stats.map((s) => (
-              <div key={s.label} className="stat-item">
-                <div className="stat-value">{s.value}</div>
-                <div className="stat-label">{s.label}</div>
-              </div>
+          {/* Stack badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 36 }}>
+            {stack.map((s) => (
+              <span key={s.label} style={{
+                padding: '6px 14px',
+                borderRadius: 9999,
+                border: '1px solid',
+                fontSize: '0.82rem',
+                fontFamily: 'var(--font-family-mono)',
+                transition: 'all 0.2s',
+                ...badgeStyle[s.color],
+              }}>
+                {s.label}
+              </span>
             ))}
           </div>
 
+          {/* CTA */}
           <div className="hero-cta">
             <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary">
               Download Resume

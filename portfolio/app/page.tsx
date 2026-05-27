@@ -1,10 +1,12 @@
 import AnimatedBackground from '@/components/AnimatedBackground'
-import Navbar from '@/components/Navbar'
-import Hero from '@/components/Hero'
-import About from '@/components/About'
+import Navbar     from '@/components/Navbar'
+import Hero       from '@/components/Hero'
+import About      from '@/components/About'
 import Experience from '@/components/Experience'
-import Skills from '@/components/Skills'
-import Contact from '@/components/Contact'
+import Skills     from '@/components/Skills'
+import Projects   from '@/components/Projects'
+import Contact    from '@/components/Contact'
+import Blog       from '@/components/Blog'
 
 export default function Home() {
   return (
@@ -16,6 +18,8 @@ export default function Home() {
         <About />
         <Experience />
         <Skills />
+        {/* <Projects /> */}
+        <Blog />
         <Contact />
       </main>
     </>

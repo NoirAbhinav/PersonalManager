@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    background: #0a0a0a; font-family: 'JetBrains Mono', monospace;
+  }
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .radial {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 40% 50%, rgba(0,255,136,0.07) 0%, transparent 70%);
+  }
+  .border-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #00ff88, #ffb300, transparent);
+  }
+  .content {
+    position: relative; z-index: 1;
+    padding: 56px 80px;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; gap: 20px;
+  }
+  .label { color: #00ff88; font-size: 16px; letter-spacing: 0.06em; }
+  .name {
+    font-family: 'Syne', sans-serif;
+    font-size: 82px; font-weight: 700; line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .name span { color: #e2e2e2; }
+  .name em { color: #00ff88; font-style: normal; text-shadow: 0 0 32px rgba(0,255,136,0.45); }
+
+  /* Role + location row */
+  .role-row { display: flex; align-items: center; gap: 16px; }
+  .role { color: #888; font-size: 18px; }
+  .role-dot { width: 4px; height: 4px; border-radius: 50%; background: #333; }
+  .location { color: #555; font-size: 16px; }
+
+  /* Tagline */
+  .tagline {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; color: #444;
+    border-left: 2px solid #00ff88;
+    padding-left: 16px; margin: 4px 0;
+    font-style: italic; font-weight: 400;
+  }
+
+  /* Stack badges */
+  .stack { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .badge {
+    padding: 7px 16px; border-radius: 9999px;
+    border: 1px solid #1f1f1f;
+    font-size: 14px; color: #666;
+    background: rgba(255,255,255,0.03);
+  }
+  .badge.hl { border-color: rgba(0,255,136,0.2); color: #00ff88; background: rgba(0,255,136,0.05); }
+  .badge.am { border-color: rgba(255,179,0,0.2); color: #ffb300; background: rgba(255,179,0,0.05); }
+
+  .bottom {
+    position: absolute; bottom: 44px; right: 80px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .domain { color: #333; font-size: 15px; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: #00ff88; }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="radial"></div>
+  <div class="border-top"></div>
+
+  <div class="content">
+    <div class="label">// portfolio</div>
+
+    <div class="name"><span>Abhinav </span><em>Nair</em></div>
+
+    <div class="role-row">
+      <span class="role">Senior Backend Engineer</span>
+      <div class="role-dot"></div>
+      <span class="location">@ Affinsys.ai · Bengaluru, IN</span>
+    </div>
+
+    <div class="tagline">
+      Building calm, reliable systems behind chaotic workloads.
+    </div>
+
+    <div class="stack">
+      <span class="badge hl">Python</span>
+      <span class="badge hl">Rust</span>
+      <span class="badge am">AWS</span>
+      <span class="badge am">GenAI</span>
+      <span class="badge">FastAPI</span>
+      <span class="badge">Django</span>
+      <span class="badge">Docker</span>
+      <span class="badge">Kubernetes</span>
+      <span class="badge">PostgreSQL</span>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <span class="domain">abhinavnair.dev</span>
+    <div class="dot"></div>
+    <span class="domain">github.com/NoirAbhinav</span>
+  </div>
+</body>
+</html>
