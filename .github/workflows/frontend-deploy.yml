@@ -38,6 +38,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "FinanceManager/frontend/dist/*"
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           target: "/home/ubuntu/frontend-build"
 
       - name: Deploy Frontend
