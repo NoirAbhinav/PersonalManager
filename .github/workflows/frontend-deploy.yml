@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: frontend
+        working-directory: FinanceManager/frontend
 
     steps:
       - name: Checkout
@@ -37,7 +37,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "frontend/dist/*"
+          source: "FinanceManager/frontend/dist/*"
           target: "/home/ubuntu/frontend-build"
 
       - name: Deploy Frontend
@@ -50,7 +50,7 @@ jobs:
             sudo mkdir -p /var/www/portfolio
 
             sudo rm -rf /var/www/portfolio/*
-            sudo cp -r /home/ubuntu/frontend-build/frontend/dist/* /var/www/portfolio/
+            sudo cp -r /home/ubuntu/frontend-build/FinanceManager/frontend/dist/* /var/www/portfolio/
 
             sudo nginx -t
             sudo systemctl reload nginx

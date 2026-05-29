@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: FinanceManager/backend
 
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "backend/server"
+          source: "FinanceManager/backend/server"
           target: "/home/ubuntu/deploy"
 
       - name: Restart Service
@@ -48,7 +48,7 @@ jobs:
           script: |
             mkdir -p /home/ubuntu/app
 
-            cp /home/ubuntu/deploy/backend/server /home/ubuntu/app/server
+            cp /home/ubuntu/deploy/FinanceManager/backend/server /home/ubuntu/app/server
             chmod +x /home/ubuntu/app/server
 
             sudo systemctl restart portfolio
