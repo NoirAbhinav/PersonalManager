@@ -51,8 +51,8 @@ func generateRandomState() string {
 }
 
 // setCookie is a helper to keep cookie config consistent across all handlers
-func setCookie(c *gin.Context, name, value string, maxAge int, httpOnly bool) {
-	c.SetCookie(name, value, maxAge, "/", "localhost", false, httpOnly)
+func setCookie(c *gin.Context, name, value string, maxAge int, httpOnly bool, domain string) {
+	c.SetCookie(name, value, maxAge, "/", domain, false, httpOnly)
 }
 
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
@@ -64,11 +64,11 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 			c.Redirect(http.StatusTemporaryRedirect, h.cfg.FrontendURL+"/dashboard")
 			return
 		}
-		setCookie(c, "session_user", "", -1, true)
+		setCookie(c, "session_user", "", -1, true, h.cfg.Domain)
 	}
 
 	state := generateRandomState()
-	setCookie(c, "oauth_state", state, 300, true)
+	setCookie(c, "oauth_state", state, 300, true, h.cfg.Domain)
 	url := h.OAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
@@ -82,7 +82,7 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid state parameter"})
 		return
 	}
-	setCookie(c, "oauth_state", "", -1, true)
+	setCookie(c, "oauth_state", "", -1, true, h.cfg.Domain)
 
 	code := c.Query("code")
 	if code == "" {
@@ -143,14 +143,14 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		}
 	}
 
-	setCookie(c, "session_user", email, 3600*24*7, true)
-	setCookie(c, "is_authenticated", "true", 3600*24*7, false)
+	setCookie(c, "session_user", email, 3600*24*7, true, h.cfg.Domain)
+	setCookie(c, "is_authenticated", "true", 3600*24*7, false, h.cfg.Domain)
 	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/dashboard")
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
-	setCookie(c, "session_user", "", -1, true)
-	setCookie(c, "is_authenticated", "", -1, false)
+	setCookie(c, "session_user", "", -1, true, h.cfg.Domain)
+	setCookie(c, "is_authenticated", "", -1, false, h.cfg.Domain)
 	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/login")
 }
 

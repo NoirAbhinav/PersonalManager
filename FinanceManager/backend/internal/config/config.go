@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port   string
+	Domain string
 
 	GoogleClientID     string
 	GoogleClientSecret string
@@ -39,6 +40,7 @@ func Load() *Config {
 	}
 
 	return &Config{
+		Domain:             getEnv("DOMAIN", "finance.abhinavnair.dev"),
 		Port:               getEnv("PORT", "8080"),
 		DatabaseURL:        getEnv("DATABASE_URL", ""),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
