@@ -72,7 +72,7 @@ function normalizeJob(job: any): ScheduledJob {
 }
 
 export async function fetchJobs(): Promise<ScheduledJob[]> {
-  const res = await fetch(`${API_BASE_URL}/scheduler/jobs`, { credentials: 'include' })
+  const res = await fetch(`${API_BASE_URL}/finance/scheduler/jobs`, { credentials: 'include' })
   if (!res.ok) throw new Error('Failed to fetch jobs')
   const data = await res.json()
   return (data.jobs ?? []).map(normalizeJob)
@@ -84,7 +84,7 @@ export async function createJob(payload: {
   schedule: Schedule
   job_config: JobConfig
 }): Promise<ScheduledJob> {
-  const res = await fetch(`${API_BASE_URL}/scheduler/jobs`, {
+  const res = await fetch(`${API_BASE_URL}/finance/scheduler/jobs`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -100,7 +100,7 @@ export async function updateJob(id: string, payload: {
   schedule: Schedule
   job_config: JobConfig
 }): Promise<ScheduledJob> {
-  const res = await fetch(`${API_BASE_URL}/scheduler/jobs/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/scheduler/jobs/${id}`, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ export async function updateJob(id: string, payload: {
 }
 
 export async function deleteJob(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/scheduler/jobs/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/scheduler/jobs/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -119,7 +119,7 @@ export async function deleteJob(id: string): Promise<void> {
 }
 
 export async function fetchJobRuns(jobID: string): Promise<JobRun[]> {
-  const res = await fetch(`${API_BASE_URL}/scheduler/jobs/${jobID}/runs`, {
+  const res = await fetch(`${API_BASE_URL}/finance/scheduler/jobs/${jobID}/runs`, {
     credentials: 'include',
   })
   if (!res.ok) throw new Error('Failed to fetch job runs')

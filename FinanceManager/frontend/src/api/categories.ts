@@ -17,14 +17,14 @@ export interface CategoryRule {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch(`${API_BASE_URL}/categories`, { credentials: 'include' })
+  const res = await fetch(`${API_BASE_URL}/finance/categories`, { credentials: 'include' })
   if (!res.ok) throw new Error('Failed to fetch categories')
   const data = await res.json()
   return data.categories
 }
 
 export async function createCategory(name: string, color: string): Promise<Category> {
-  const res = await fetch(`${API_BASE_URL}/categories`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -35,7 +35,7 @@ export async function createCategory(name: string, color: string): Promise<Categ
 }
 
 export async function updateCategory(id: string, name: string, color: string): Promise<Category> {
-  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories/${id}`, {
     method: 'PUT',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -46,7 +46,7 @@ export async function updateCategory(id: string, name: string, color: string): P
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -54,7 +54,7 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 export async function fetchRules(categoryID: string): Promise<CategoryRule[]> {
-  const res = await fetch(`${API_BASE_URL}/categories/${categoryID}/rules`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories/${categoryID}/rules`, {
     credentials: 'include',
   })
   if (!res.ok) throw new Error('Failed to fetch rules')
@@ -63,7 +63,7 @@ export async function fetchRules(categoryID: string): Promise<CategoryRule[]> {
 }
 
 export async function addRule(categoryID: string, keyword: string): Promise<CategoryRule> {
-  const res = await fetch(`${API_BASE_URL}/categories/${categoryID}/rules`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories/${categoryID}/rules`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@ export async function addRule(categoryID: string, keyword: string): Promise<Cate
 }
 
 export async function deleteRule(categoryID: string, ruleID: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/categories/${categoryID}/rules/${ruleID}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/categories/${categoryID}/rules/${ruleID}`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -82,7 +82,7 @@ export async function deleteRule(categoryID: string, ruleID: string): Promise<vo
 }
 
 export async function recategorizeAll(): Promise<{ categorized: number }> {
-  const res = await fetch(`${API_BASE_URL}/transactions/recategorize`, {
+  const res = await fetch(`${API_BASE_URL}/finance/transactions/recategorize`, {
     method: 'POST',
     credentials: 'include',
   })

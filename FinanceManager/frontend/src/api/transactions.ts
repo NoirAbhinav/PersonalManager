@@ -35,7 +35,7 @@ export async function fetchTransactions(
   if (filters.max_amount != null) params.set('max_amount', String(filters.max_amount))
   if (filters.search)      params.set('search', filters.search)
 
-  const res = await fetch(`${API_BASE_URL}/transactions?${params.toString()}`, {
+  const res = await fetch(`${API_BASE_URL}/finance/transactions?${params.toString()}`, {
     credentials: 'include',
   })
   if (!res.ok) throw new Error('Failed to fetch transactions')

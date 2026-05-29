@@ -19,7 +19,7 @@ export function logout() {
 
 export async function checkAuthStatus(): Promise<AuthState> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/me`, {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
       credentials: 'include',
     })
 

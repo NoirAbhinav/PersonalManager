@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 export async function syncGmailTransactions(): Promise<SyncResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/sync/gmail`, {
+    const response = await fetch(`${API_BASE_URL}/finance/sync/gmail`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export function setLastSyncTime() {
 }
 
 export async function getSyncStatus() {
-  const res = await fetch(`${API_BASE_URL}/sync/status`, {
+  const res = await fetch(`${API_BASE_URL}/finance/sync/status`, {
     credentials: 'include',
   })
   if (!res.ok) throw new Error('Failed to get sync status')

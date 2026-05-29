@@ -11,27 +11,27 @@ export interface Notification {
 }
 
 export async function fetchNotifications(): Promise<{ notifications: Notification[]; unread_count: number }> {
-  const res = await fetch(`${API_BASE_URL}/notifications`, { credentials: 'include' })
+  const res = await fetch(`${API_BASE_URL}/finance/notifications`, { credentials: 'include' })
   if (!res.ok) throw new Error('Failed to fetch notifications')
   return res.json()
 }
 
 export async function fetchUnreadCount(): Promise<number> {
-  const res = await fetch(`${API_BASE_URL}/notifications/unread-count`, { credentials: 'include' })
+  const res = await fetch(`${API_BASE_URL}/finance/notifications/unread-count`, { credentials: 'include' })
   if (!res.ok) return 0
   const data = await res.json()
   return data.unread_count ?? 0
 }
 
 export async function markRead(id: string): Promise<void> {
-  await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+  await fetch(`${API_BASE_URL}/finance/notifications/${id}/read`, {
     method: 'POST',
     credentials: 'include',
   })
 }
 
 export async function markAllRead(): Promise<void> {
-  await fetch(`${API_BASE_URL}/notifications/read-all`, {
+  await fetch(`${API_BASE_URL}/finance/notifications/read-all`, {
     method: 'POST',
     credentials: 'include',
   })
