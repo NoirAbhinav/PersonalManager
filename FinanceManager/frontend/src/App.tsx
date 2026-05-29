@@ -4,13 +4,12 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Categories from './pages/Categories'
 import Scheduler from './pages/Scheduler'
-
 import { useAuth } from './hooks/useAuth'
 
 const queryClient = new QueryClient()
 
-function AppRoutes() {
-  const { isAuthenticated, isLoading } = useAuth()
+function AppRoutes({ auth }: { auth: ReturnType<typeof useAuth> }) {
+  const { isAuthenticated, isLoading } = auth
 
   if (isLoading) {
     return (
@@ -25,27 +24,30 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
-        element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
-      />
-      <Route
-        path="/categories"
-        element={isAuthenticated ? <Categories /> : <Navigate to="/login" />}
-      />
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+      } />
+      <Route path="/dashboard" element={
+        isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/categories" element={
+        isAuthenticated ? <Categories /> : <Navigate to="/login" replace />
+      } />
       <Route path="/scheduler" element={<Scheduler />} />
-
-      <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
+      <Route path="/" element={
+        <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
+      } />
     </Routes>
   )
 }
 
 export default function App() {
+  const auth = useAuth()
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AppRoutes />
+        <AppRoutes auth={auth} />
       </Router>
     </QueryClientProvider>
   )
