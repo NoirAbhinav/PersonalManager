@@ -30,12 +30,12 @@ jobs:
           go mod download
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./server ./cmd/server
           ls -lah ./server
-    - name: Verify From Workspace Root
-      working-directory: .
-      run: |
-        pwd
-        ls -la
-        find . -name server -type f
+      - name: Verify From Workspace Root
+        working-directory: .
+        run: |
+          pwd
+          ls -la
+          find . -name server -type f
       - name: Copy Binary
         uses: appleboy/scp-action@v0.1.7
         with:
