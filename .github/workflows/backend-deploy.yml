@@ -30,6 +30,11 @@ jobs:
           go mod download
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./server ./cmd/server
           ls -lah ./server
+      - name: Verify Files
+        run: |
+          pwd
+          find . -name server -type f
+          find . -name Makefile
       - name: Copy Binary
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -40,6 +45,7 @@ jobs:
           source: |
             FinanceManager/backend/server
             FinanceManager/backend/Makefile
+            FinanceManager/backend/internal/db/migrations
           target: "/home/ubuntu/deploy"
 
       - name: Restart Service
@@ -54,10 +60,11 @@ jobs:
 
             cp /home/ubuntu/deploy/FinanceManager/backend/server /home/ubuntu/app/server
             cp /home/ubuntu/deploy/FinanceManager/backend/Makefile /home/ubuntu/app/Makefile
+            cp -r /home/ubuntu/deploy/FinanceManager/backend/internal/db/migrations /home/ubuntu/app/migrations
 
             chmod +x /home/ubuntu/app/server
 
             make migrate-up
 
-            sudo systemctl restart portfolio
-            sudo systemctl status portfolio --no-pager
+            sudo systemctl restart financemanager
+            sudo systemctl status financemanager --no-pager
