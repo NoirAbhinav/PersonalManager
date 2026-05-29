@@ -1,0 +1,60 @@
+name: Deploy Frontend
+
+on:
+push:
+branches:
+- main
+
+jobs:
+deploy:
+if: |
+contains(github.event.head_commit.message, 'deploy:frontend') ||
+contains(github.event.head_commit.message, 'deploy:all')
+environment: Production
+
+```
+runs-on: ubuntu-latest
+
+defaults:
+  run:
+    working-directory: frontend
+
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  - name: Setup Node
+    uses: actions/setup-node@v4
+    with:
+      node-version: "22"
+
+  - name: Install Dependencies
+    run: npm ci
+
+  - name: Build Frontend
+    run: npm run build
+
+  - name: Upload Dist
+    uses: appleboy/scp-action@v0.1.7
+    with:
+      host: ${{ secrets.SERVER_HOST }}
+      username: ${{ secrets.SERVER_USER }}
+      key: ${{ secrets.SERVER_SSH_KEY }}
+      source: "frontend/dist/*"
+      target: "/home/ubuntu/frontend-build"
+
+  - name: Deploy Frontend
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+      host: ${{ secrets.SERVER_HOST }}
+      username: ${{ secrets.SERVER_USER }}
+      key: ${{ secrets.SERVER_SSH_KEY }}
+      script: |
+        sudo mkdir -p /var/www/portfolio
+
+        sudo rm -rf /var/www/portfolio/*
+        sudo cp -r /home/ubuntu/frontend-build/frontend/dist/* /var/www/portfolio/
+
+        sudo nginx -t
+        sudo systemctl reload nginx
+```
