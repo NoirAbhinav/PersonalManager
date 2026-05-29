@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
+	"github.com/NoirAbhinav/personalmanager/internal/config"
 	gmailintegration "github.com/NoirAbhinav/personalmanager/internal/integrations/gmail"
 	"github.com/NoirAbhinav/personalmanager/internal/repositories"
 	"github.com/NoirAbhinav/personalmanager/internal/services"
@@ -14,6 +15,7 @@ import (
 )
 
 type AuthHandler struct {
+	cfg                   *config.Config
 	OAuthConfig           *oauth2.Config
 	oauthRepository       *repositories.OAuthRepository
 	userRepository        *repositories.UserRepository
@@ -23,6 +25,7 @@ type AuthHandler struct {
 }
 
 func NewAuthHandler(
+	cfg *config.Config,
 	oauthConfig *oauth2.Config,
 	transactionRepository *repositories.TransactionRepository,
 	oauthRepository *repositories.OAuthRepository,
@@ -31,6 +34,7 @@ func NewAuthHandler(
 	categorizationService *services.CategorizationService,
 ) *AuthHandler {
 	return &AuthHandler{
+		cfg:                   cfg,
 		OAuthConfig:           oauthConfig,
 		transactionRepository: transactionRepository,
 		oauthRepository:       oauthRepository,
@@ -57,7 +61,7 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 		ctx := c.Request.Context()
 		_, err := h.userRepository.GetByEmail(ctx, userEmail)
 		if err == nil {
-			c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000/dashboard")
+			c.Redirect(http.StatusTemporaryRedirect, h.cfg.FrontendURL+"/dashboard")
 			return
 		}
 		setCookie(c, "session_user", "", -1, true)
@@ -141,13 +145,13 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 
 	setCookie(c, "session_user", email, 3600*24*7, true)
 	setCookie(c, "is_authenticated", "true", 3600*24*7, false)
-	c.Redirect(http.StatusFound, "http://localhost:3000/dashboard")
+	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/dashboard")
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
 	setCookie(c, "session_user", "", -1, true)
 	setCookie(c, "is_authenticated", "", -1, false)
-	c.Redirect(http.StatusFound, "http://localhost:3000/login")
+	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/login")
 }
 
 func (h *AuthHandler) Me(c *gin.Context) {

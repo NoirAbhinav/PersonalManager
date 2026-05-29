@@ -74,6 +74,7 @@ func buildDependencies(cfg *config.Config) (*Dependencies, error) {
 
 	// Handlers
 	authHandler := api.NewAuthHandler(
+		cfg,
 		oauthConfig,
 		transactionRepository,
 		oauthRepository,

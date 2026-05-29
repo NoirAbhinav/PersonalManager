@@ -1,16 +1,16 @@
 package app
 
 import (
+	"github.com/NoirAbhinav/personalmanager/internal/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func setupMiddleware(r *gin.Engine) {
+func setupMiddleware(cfg *config.Config, r *gin.Engine) {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:3000",
-			"http://localhost:5173",
+			cfg.FrontendURL,
 		},
 
 		AllowMethods: []string{

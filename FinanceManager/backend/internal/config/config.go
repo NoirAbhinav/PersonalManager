@@ -15,6 +15,7 @@ type Config struct {
 	GoogleRedirectURL  string
 	DatabaseURL        string
 	GeminiAPIKey       string
+	FrontendURL        string
 
 	SMTPHost string
 	SMTPPort string
@@ -45,10 +46,11 @@ func Load() *Config {
 		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
 		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
 
-		SMTPHost: getEnv("SMTP_HOST", ""),
-		SMTPPort: getEnv("SMTP_PORT", "587"),
-		SMTPUser: getEnv("SMTP_USER", ""),
-		SMTPPass: getEnv("SMTP_PASS", ""),
-		SMTPFrom: getEnv("SMTP_FROM", ""),
+		SMTPHost:    getEnv("SMTP_HOST", ""),
+		SMTPPort:    getEnv("SMTP_PORT", "587"),
+		SMTPUser:    getEnv("SMTP_USER", ""),
+		SMTPPass:    getEnv("SMTP_PASS", ""),
+		SMTPFrom:    getEnv("SMTP_FROM", ""),
+		FrontendURL: getEnv("FRONTEND_URL", ""),
 	}
 }

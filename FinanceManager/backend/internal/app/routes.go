@@ -3,10 +3,11 @@ package app
 import (
 	"net/http"
 
+	"github.com/NoirAbhinav/personalmanager/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
-func setupRouter(deps *Dependencies) *gin.Engine {
+func setupRouter(cfg *config.Config, deps *Dependencies) *gin.Engine {
 	r := gin.Default()
 
 	setupMiddleware(r)
