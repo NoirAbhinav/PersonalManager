@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown, Mail, MapPin } from 'lucide-react'
 import { Github, Linkedin } from '@/components/Icons'
+import { track } from '@vercel/analytics'
 
 const bootLines = [
   { text: '> Initializing system...', delay: 0 },
@@ -122,21 +123,24 @@ export default function Hero() {
 
           {/* CTA */}
           <div className="hero-cta">
-            <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary">
+            <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary" onClick={() => track('resume_download', { location: 'hero' })}>
               Download Resume
             </a>
             <button className="btn-outline"
-              onClick={() => document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' })}>
+              onClick={() => {
+                track('view_experience_click');
+                document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
               View Experience
             </button>
             <div className="hero-socials">
-              <a href="https://github.com/NoirAbhinav" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="GitHub">
+              <a href="https://github.com/NoirAbhinav" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="GitHub" onClick={() => track('social_click', { platform: 'github', location: 'hero' })}>
                 <Github size={20} />
               </a>
-              <a href="https://linkedin.com/in/abhinav-nair-n3747" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn">
+              <a href="https://linkedin.com/in/abhinav-nair-n3747" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn" onClick={() => track('social_click', { platform: 'linkedin', location: 'hero' })}>
                 <Linkedin size={20} />
               </a>
-              <a href="mailto:abhinavbbps2000@gmail.com" className="social-link" aria-label="Email">
+              <a href="mailto:abhinavbbps2000@gmail.com" className="social-link" aria-label="Email" onClick={() => track('social_click', { platform: 'email', location: 'hero' })}>
                 <Mail size={20} />
               </a>
             </div>

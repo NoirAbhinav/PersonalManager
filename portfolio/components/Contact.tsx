@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { ArrowUpRight, FileDown, Mail, Phone } from 'lucide-react'
 import { Github, Linkedin } from '@/components/Icons'
+import { track } from '@vercel/analytics'
 
 const links = [
   { icon: Mail, label: 'Email', value: 'abhinavbbps2000@gmail.com', href: 'mailto:abhinavbbps2000@gmail.com', color: 'green' },
@@ -36,6 +37,7 @@ export default function Contact() {
             <motion.a key={link.label} href={link.href}
               target={link.href.startsWith('http') ? '_blank' : undefined}
               rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              onClick={() => track('contact_link_click', { platform: link.label.toLowerCase() })}
               initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
               className="glass-card contact-card">
@@ -53,7 +55,7 @@ export default function Contact() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.6 }} className="contact-cta">
-          <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary" style={{ fontSize: '0.95rem', padding: '14px 32px' }}>
+          <a href="/Abhinav_Nair_Resume.pdf" download className="btn-primary" style={{ fontSize: '0.95rem', padding: '14px 32px' }} onClick={() => track('resume_download', { location: 'contact' })}>
             <FileDown size={18} />
             Download Full Resume
           </a>

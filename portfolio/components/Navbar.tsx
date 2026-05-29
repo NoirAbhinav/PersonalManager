@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, Terminal, X } from 'lucide-react'
+import { track } from '@vercel/analytics'
 
 const navLinks = [
   { label: 'About',      href: '#about'      },
@@ -35,6 +36,7 @@ export default function Navbar() {
   }, [])
 
   const go = (href: string) => {
+    track('navbar_click', { destination: href })
     setMobileOpen(false)
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -64,7 +66,7 @@ export default function Navbar() {
                 )}
               </button>
             ))}
-            <a href="/Abhinav_Nair_Resume.pdf" download className="navbar-resume">Resume</a>
+            <a href="/Abhinav_Nair_Resume.pdf" download className="navbar-resume" onClick={() => track('resume_download', { location: 'navbar_desktop' })}>Resume</a>
           </div>
 
           <button className="navbar-hamburger" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
@@ -87,7 +89,7 @@ export default function Navbar() {
             ))}
             <motion.a initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }} href="/Abhinav_Nair_Resume.pdf" download
-              className="btn-primary" style={{ marginTop: 16 }}>
+              className="btn-primary" style={{ marginTop: 16 }} onClick={() => track('resume_download', { location: 'navbar_mobile' })}>
               Download Resume
             </motion.a>
           </motion.div>
