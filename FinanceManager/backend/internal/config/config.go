@@ -51,6 +51,6 @@ func Load() *Config {
 		SMTPUser:    getEnv("SMTP_USER", ""),
 		SMTPPass:    getEnv("SMTP_PASS", ""),
 		SMTPFrom:    getEnv("SMTP_FROM", ""),
-		FrontendURL: getEnv("FRONTEND_URL", ""),
+		FrontendURL: getEnv("FRONTEND_URL", "https://finance.abhinavnair.dev"),
 	}
 }

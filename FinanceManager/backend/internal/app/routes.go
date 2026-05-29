@@ -10,7 +10,7 @@ import (
 func setupRouter(cfg *config.Config, deps *Dependencies) *gin.Engine {
 	r := gin.Default()
 
-	setupMiddleware(r)
+	setupMiddleware(cfg, r)
 
 	registerRoutes(r, deps)
 
@@ -18,7 +18,6 @@ func setupRouter(cfg *config.Config, deps *Dependencies) *gin.Engine {
 }
 
 func registerRoutes(r *gin.Engine, deps *Dependencies) {
-
 	// Health
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -27,57 +26,76 @@ func registerRoutes(r *gin.Engine, deps *Dependencies) {
 	})
 
 	// Auth
-	r.GET("/auth/google/login", deps.AuthHandler.GoogleLogin)
+	auth := r.Group("/auth")
+	{
+		auth.GET("/google/login", deps.AuthHandler.GoogleLogin)
+		auth.GET("/google/callback", deps.AuthHandler.GoogleCallback)
+		auth.GET("/logout", deps.AuthHandler.Logout)
+		auth.GET("/me", deps.AuthHandler.Me)
+	}
 
-	r.GET("/auth/google/callback", deps.AuthHandler.GoogleCallback)
+	// Finance API
+	finance := r.Group("/finance")
+	{
+		// Transactions
+		finance.GET("/transactions", deps.TransactionHandler.GetTransactions)
 
-	r.GET("/auth/logout", deps.AuthHandler.Logout)
+		finance.POST("/transactions/:id/category",
+			deps.CategoryHandler.SetTransactionCategory,
+		)
 
-	r.GET("/api/me", deps.AuthHandler.Me)
+		finance.POST("/transactions/recategorize",
+			deps.CategoryHandler.RecategorizeAll,
+		)
 
-	// Transactions
-	r.GET("/transactions", deps.TransactionHandler.GetTransactions)
+		// Categories
+		finance.GET("/categories", deps.CategoryHandler.GetCategories)
 
-	r.POST("/transactions/:id/category",
-		deps.CategoryHandler.SetTransactionCategory,
-	)
+		finance.POST("/categories", deps.CategoryHandler.CreateCategory)
 
-	r.POST("/transactions/recategorize",
-		deps.CategoryHandler.RecategorizeAll,
-	)
+		finance.PUT("/categories/:id", deps.CategoryHandler.UpdateCategory)
 
-	// Categories
-	r.GET("/categories", deps.CategoryHandler.GetCategories)
+		finance.DELETE("/categories/:id", deps.CategoryHandler.DeleteCategory)
 
-	r.POST("/categories", deps.CategoryHandler.CreateCategory)
+		finance.GET("/categories/:id/rules",
+			deps.CategoryHandler.GetRules,
+		)
 
-	r.PUT("/categories/:id", deps.CategoryHandler.UpdateCategory)
+		finance.POST("/categories/:id/rules",
+			deps.CategoryHandler.AddRule,
+		)
 
-	r.DELETE("/categories/:id", deps.CategoryHandler.DeleteCategory)
+		finance.DELETE("/categories/:id/rules/:rule_id",
+			deps.CategoryHandler.DeleteRule,
+		)
 
-	r.GET("/categories/:id/rules", deps.CategoryHandler.GetRules)
+		// Sync
+		finance.POST("/sync/gmail", deps.SyncHandler.SyncGmail)
 
-	r.POST("/categories/:id/rules", deps.CategoryHandler.AddRule)
+		finance.GET("/sync/status", deps.SyncHandler.GetSyncStatus)
 
-	r.DELETE("/categories/:id/rules/:rule_id",
-		deps.CategoryHandler.DeleteRule,
-	)
+		// Scheduler
+		finance.GET("/scheduler/jobs", deps.SchedulerHandler.ListJobs)
+		finance.POST("/scheduler/jobs", deps.SchedulerHandler.CreateJob)
+		finance.PUT("/scheduler/jobs/:id", deps.SchedulerHandler.UpdateJob)
+		finance.DELETE("/scheduler/jobs/:id", deps.SchedulerHandler.DeleteJob)
+		finance.GET("/scheduler/jobs/:id/runs",
+			deps.SchedulerHandler.GetJobRuns,
+		)
 
-	// Sync
-	r.POST("/sync/gmail", deps.SyncHandler.SyncGmail)
+		// Notifications
+		finance.GET("/notifications", deps.NotificationHandler.List)
 
-	r.GET("/sync/status", deps.SyncHandler.GetSyncStatus)
+		finance.GET("/notifications/unread-count",
+			deps.NotificationHandler.GetUnreadCount,
+		)
 
-	// Scheduler
-	r.GET("/scheduler/jobs", deps.SchedulerHandler.ListJobs)
-	r.POST("/scheduler/jobs", deps.SchedulerHandler.CreateJob)
-	r.PUT("/scheduler/jobs/:id", deps.SchedulerHandler.UpdateJob)
-	r.DELETE("/scheduler/jobs/:id", deps.SchedulerHandler.DeleteJob)
-	r.GET("/scheduler/jobs/:id/runs", deps.SchedulerHandler.GetJobRuns)
+		finance.POST("/notifications/:id/read",
+			deps.NotificationHandler.MarkRead,
+		)
 
-	// Notifications
-	r.GET("/notifications", deps.NotificationHandler.List)
-	r.GET("/notifications/unread-count", deps.NotificationHandler.GetUnreadCount)
-	r.POST("/notifications/:id/read", deps.NotificationHandler.MarkRead)
-	r.POST("/notifications/read-all", deps.NotificationHandler.MarkAllRead)
+		finance.POST("/notifications/read-all",
+			deps.NotificationHandler.MarkAllRead,
+		)
+	}
 }

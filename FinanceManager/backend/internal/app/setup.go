@@ -8,7 +8,7 @@ func (a *App) setup() error {
 		return err
 	}
 
-	router := setupRouter(deps)
+	router := setupRouter(cfg, deps)
 
 	startWorkers(a.ctx, deps)
 
