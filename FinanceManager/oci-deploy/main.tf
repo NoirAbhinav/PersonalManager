@@ -2,7 +2,7 @@ terraform {
   required_providers {
     oci = {
       source  = "oracle/oci"
-    version = "~> 7.0"
+      version = "~> 7.0"
     }
   }
 }
@@ -47,39 +47,35 @@ resource "oci_core_security_list" "sl" {
   vcn_id         = oci_core_vcn.portfolio_vcn.id
   display_name   = "portfolio-sl"
 
-  # Allow all outbound
   egress_security_rules {
     destination = "0.0.0.0/0"
     protocol    = "all"
   }
 
-  # SSH
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-    min = 22
-    max = 22
-    }
-  }
-
-  # HTTP
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
     tcp_options { 
-        min = 80
-        max = 80 
+      min = 22
+      max = 22 
     }
   }
 
-  # HTTPS
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
     tcp_options { 
-        min = 443 
-        max = 443 
+      min = 80
+      max = 80 
+    }
+  }
+
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options { 
+      min = 443
+      max = 443 
     }
   }
 }
@@ -94,34 +90,31 @@ resource "oci_core_subnet" "portfolio_subnet" {
   security_list_ids = [oci_core_security_list.sl.id]
 }
 
-# --- Find latest Ubuntu 22.04 image for ARM ---
+# --- Find latest Ubuntu 22.04 image for AMD ---
 
-data "oci_core_images" "ubuntu_arm" {
+data "oci_core_images" "ubuntu_amd" {
   compartment_id           = var.compartment_ocid
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape                    = "VM.Standard.A1.Flex"
+  shape                    = "VM.Standard.E2.1.Micro"
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
 
-# --- Compute Instance (A1 Flex — Always Free) ---
+# --- Compute Instance (E2.1.Micro — Always Free AMD, 1 OCPU, 1GB RAM) ---
 
 resource "oci_core_instance" "portfolio_server" {
   compartment_id      = var.compartment_ocid
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   display_name        = "portfolio-server"
-  shape               = "VM.Standard.A1.Flex"
+  shape               = "VM.Standard.E2.1.Micro"
 
-  shape_config {
-    ocpus         = 1  # up to 4 total for free
-    memory_in_gbs = 4    # up to 24 total for free
-  }
+  # No shape_config block — E2.1.Micro is fixed at 1 OCPU / 1GB RAM
 
   source_details {
     source_type             = "image"
-    source_id               = data.oci_core_images.ubuntu_arm.images[0].id
-    boot_volume_size_in_gbs = 50   # free tier includes 200GB total
+    source_id               = data.oci_core_images.ubuntu_amd.images[0].id
+    boot_volume_size_in_gbs = 50
   }
 
   create_vnic_details {
