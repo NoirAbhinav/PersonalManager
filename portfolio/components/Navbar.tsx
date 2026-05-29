@@ -5,35 +5,36 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, Terminal, X } from 'lucide-react'
 
 const navLinks = [
-  { label: 'About', href: '#about' },
+  { label: 'About',      href: '#about'      },
   { label: 'Experience', href: '#experience' },
-  { label: 'Skills', href: '#skills' },
-  // { label: 'Projects', href: '#projects' },
-  { label: 'Writing', href: '#blog' },   // ← add this
-  { label: 'Contact', href: '#contact' },
+  { label: 'Skills',     href: '#skills'     },
+  // { label: 'Projects',   href: '#projects'   },
+  { label: 'Activity',   href: '#github'     },
+  { label: 'Writing',    href: '#blog'       },
+  { label: 'Contact',    href: '#contact'    },
 ]
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
-  const [activeSection, setActiveSection] = useState('')
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled]       = useState(false)
+  const [activeSection, setActive]    = useState('')
+  const [mobileOpen, setMobileOpen]   = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setActiveSection(e.target.id)),
+      entries => entries.forEach(e => e.isIntersecting && setActive(e.target.id)),
       { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
     )
-    document.querySelectorAll('section[id]').forEach((s) => observer.observe(s))
+    document.querySelectorAll('section[id]').forEach(s => observer.observe(s))
     return () => observer.disconnect()
   }, [])
 
-  const handleClick = (href: string) => {
+  const go = (href: string) => {
     setMobileOpen(false)
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -41,8 +42,7 @@ export default function Navbar() {
   return (
     <>
       <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        initial={{ y: -100 }} animate={{ y: 0 }}
         transition={{ duration: 0.6, delay: 2.2 }}
         className={`navbar${scrolled ? ' scrolled' : ''}`}
       >
@@ -53,13 +53,10 @@ export default function Navbar() {
           </button>
 
           <div className="navbar-links">
-            {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleClick(link.href)}
-                className={`nav-link${activeSection === link.href.slice(1) ? ' active' : ''}`}
-              >
-                <span style={{ color: 'rgba(0,255,136,0.6)', marginRight: 4 }}>{'>'}</span>
+            {navLinks.map(link => (
+              <button key={link.href} onClick={() => go(link.href)}
+                className={`nav-link${activeSection === link.href.slice(1) ? ' active' : ''}`}>
+                <span style={{ color: 'rgba(0,255,136,0.5)', marginRight: 3 }}>{'>'}</span>
                 {link.label}
                 {activeSection === link.href.slice(1) && (
                   <motion.div layoutId="nav-indicator" className="nav-link-indicator"
@@ -80,14 +77,17 @@ export default function Navbar() {
         {mobileOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mobile-menu">
             {navLinks.map((link, i) => (
-              <motion.button key={link.href} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }} onClick={() => handleClick(link.href)} className="mobile-nav-link">
+              <motion.button key={link.href}
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 }}
+                onClick={() => go(link.href)} className="mobile-nav-link">
                 <span style={{ color: 'var(--color-green)', marginRight: 8 }}>{'>'}</span>
                 {link.label}
               </motion.button>
             ))}
             <motion.a initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }} href="/Abhinav_Nair_Resume.pdf" download className="btn-primary" style={{ marginTop: 16 }}>
+              transition={{ delay: 0.5 }} href="/Abhinav_Nair_Resume.pdf" download
+              className="btn-primary" style={{ marginTop: 16 }}>
               Download Resume
             </motion.a>
           </motion.div>
