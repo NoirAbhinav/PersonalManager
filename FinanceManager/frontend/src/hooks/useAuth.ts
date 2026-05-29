@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { isAuthenticated as checkCookie, checkAuthStatus, logout as apiLogout } from '../api/auth'
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(checkCookie()) // ✅ seed from cookie synchronously
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState<string | undefined>()
 
