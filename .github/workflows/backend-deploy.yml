@@ -1,59 +1,55 @@
 name: Deploy Backend
 
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
 
 jobs:
-deploy:
-if: |
-contains(github.event.head_commit.message, 'deploy:backend') ||
-contains(github.event.head_commit.message, 'deploy:all')
-environment: Production
+  deploy:
+    if: ${{ contains(github.event.head_commit.message, 'deploy:backend') || contains(github.event.head_commit.message, 'deploy:all') }}
+    environment: Production
 
-```
-runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-defaults:
-  run:
-    working-directory: backend
+    defaults:
+      run:
+        working-directory: backend
 
-steps:
-  - name: Checkout
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  - name: Setup Go
-    uses: actions/setup-go@v5
-    with:
-      go-version: "1.24"
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
 
-  - name: Build Backend
-    run: |
-      go mod download
-      CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server .
+      - name: Build Backend
+        run: |
+          go mod download
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server .
 
-  - name: Copy Binary
-    uses: appleboy/scp-action@v0.1.7
-    with:
-      host: ${{ secrets.SERVER_HOST }}
-      username: ${{ secrets.SERVER_USER }}
-      key: ${{ secrets.SERVER_SSH_KEY }}
-      source: "backend/server"
-      target: "/home/ubuntu/deploy"
+      - name: Copy Binary
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "backend/server"
+          target: "/home/ubuntu/deploy"
 
-  - name: Restart Service
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ secrets.SERVER_HOST }}
-      username: ${{ secrets.SERVER_USER }}
-      key: ${{ secrets.SERVER_SSH_KEY }}
-      script: |
-        mkdir -p /home/ubuntu/app
+      - name: Restart Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/app
 
-        cp /home/ubuntu/deploy/backend/server /home/ubuntu/app/server
-        chmod +x /home/ubuntu/app/server
+            cp /home/ubuntu/deploy/backend/server /home/ubuntu/app/server
+            chmod +x /home/ubuntu/app/server
 
-        sudo systemctl restart portfolio
-        sudo systemctl status portfolio --no-pager
-```
+            sudo systemctl restart portfolio
+            sudo systemctl status portfolio --no-pager
