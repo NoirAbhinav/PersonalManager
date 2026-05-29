@@ -134,8 +134,10 @@ export default function SkillsRadar() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
+  const SHOW_GITHUB_LANGUAGES = true
 
-  useEffect(() => {
+
+  {SHOW_GITHUB_LANGUAGES && useEffect(() => {
     fetch('/api/languages')
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then((json: { languages: GitHubLang[] } | { error: string }) => {
@@ -144,10 +146,9 @@ export default function SkillsRadar() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [])}
 
   const totalBytes = langs.reduce((s, l) => s + l.bytes, 0)
-
   return (
     <section id="skills">
       <div className="gradient-line" />
@@ -159,8 +160,8 @@ export default function SkillsRadar() {
           <h2 className="section-title">Tech Stack</h2>
         </motion.div>
 
-        {/* ── LANGUAGE GRAPH ─────────────────────────────── */}
-        <motion.div
+        ── LANGUAGE GRAPH ───────────────────────────────
+        {SHOW_GITHUB_LANGUAGES && <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -248,9 +249,9 @@ export default function SkillsRadar() {
               <style>{`@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:0.8}}`}</style>
             </div>
           )}
-        </motion.div>
+        </motion.div>}
 
-        {/* ── PROFICIENCY GRID ────────────────────────────── */}
+        ── PROFICIENCY GRID ──────────────────────────────
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}

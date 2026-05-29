@@ -142,10 +142,8 @@ const IGNORE = new Set([
   const sum = languages.reduce((s, l) => s + l.percentage, 0)
   if (sum !== 100 && languages.length > 0) languages[0].percentage += 100 - sum
 
-  // Return which repos were used so the frontend can show it
-  const repoNames = repoLists.flatMap((repos, i) =>
-    repos.map(r => ({ repo: r.name, account: accounts[i].label }))
-  )
-
-  return NextResponse.json({ languages, totalBytes, repos: repoNames })
+  return NextResponse.json({
+  languages,
+  totalBytes,
+})
 }

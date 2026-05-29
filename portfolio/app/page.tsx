@@ -18,7 +18,6 @@ export default function Home() {
   return (
     <>
       <AnimatedBackground />
-      <StatusBanner />
       <Navbar />
       <main style={{ position: 'relative', zIndex: 1, width: '100%' }}>
         <Hero />
