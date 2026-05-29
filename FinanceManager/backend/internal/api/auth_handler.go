@@ -50,9 +50,20 @@ func generateRandomState() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-// setCookie is a helper to keep cookie config consistent across all handlers
-func setCookie(c *gin.Context, name, value string, maxAge int, httpOnly bool, domain string) {
-	c.SetCookie(name, value, maxAge, "/", domain, false, httpOnly)
+// setCookie is a helper to keep cookie config consistent across all handlers.
+// Uses http.SetCookie directly (rather than Gin's c.SetCookie) so we can set
+// SameSite and Secure attributes, which are required for production HTTPS.
+func setCookie(c *gin.Context, name, value string, maxAge int, httpOnly bool, cfg *config.Config) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     name,
+		Value:    value,
+		MaxAge:   maxAge,
+		Path:     "/",
+		Domain:   cfg.Domain,
+		Secure:   cfg.Secure,
+		HttpOnly: httpOnly,
+		SameSite: http.SameSiteLaxMode,
+	})
 }
 
 func (h *AuthHandler) GoogleLogin(c *gin.Context) {
@@ -64,11 +75,11 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 			c.Redirect(http.StatusTemporaryRedirect, h.cfg.FrontendURL+"/dashboard")
 			return
 		}
-		setCookie(c, "session_user", "", -1, true, h.cfg.Domain)
+		setCookie(c, "session_user", "", -1, true, h.cfg)
 	}
 
 	state := generateRandomState()
-	setCookie(c, "oauth_state", state, 300, true, h.cfg.Domain)
+	setCookie(c, "oauth_state", state, 300, true, h.cfg)
 	url := h.OAuthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
@@ -82,7 +93,7 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid state parameter"})
 		return
 	}
-	setCookie(c, "oauth_state", "", -1, true, h.cfg.Domain)
+	setCookie(c, "oauth_state", "", -1, true, h.cfg)
 
 	code := c.Query("code")
 	if code == "" {
@@ -143,14 +154,14 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		}
 	}
 
-	setCookie(c, "session_user", email, 3600*24*7, true, h.cfg.Domain)
-	setCookie(c, "is_authenticated", "true", 3600*24*7, false, h.cfg.Domain)
+	setCookie(c, "session_user", email, 3600*24*7, true, h.cfg)
+	setCookie(c, "is_authenticated", "true", 3600*24*7, false, h.cfg)
 	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/dashboard")
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
-	setCookie(c, "session_user", "", -1, true, h.cfg.Domain)
-	setCookie(c, "is_authenticated", "", -1, false, h.cfg.Domain)
+	setCookie(c, "session_user", "", -1, true, h.cfg)
+	setCookie(c, "is_authenticated", "", -1, false, h.cfg)
 	c.Redirect(http.StatusFound, h.cfg.FrontendURL+"/login")
 }
 

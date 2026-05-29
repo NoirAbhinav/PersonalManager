@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -10,6 +11,7 @@ import (
 type Config struct {
 	Port   string
 	Domain string
+	Secure bool // true when FrontendURL uses https
 
 	GoogleClientID     string
 	GoogleClientSecret string
@@ -39,9 +41,12 @@ func Load() *Config {
 		log.Println(".env file not found")
 	}
 
+	frontendURL := getEnv("FRONTEND_URL", "https://finance.abhinavnair.dev")
+
 	return &Config{
 		Domain:             getEnv("DOMAIN", "finance.abhinavnair.dev"),
 		Port:               getEnv("PORT", "8080"),
+		Secure:             strings.HasPrefix(frontendURL, "https://"),
 		DatabaseURL:        getEnv("DATABASE_URL", ""),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
@@ -53,6 +58,6 @@ func Load() *Config {
 		SMTPUser:    getEnv("SMTP_USER", ""),
 		SMTPPass:    getEnv("SMTP_PASS", ""),
 		SMTPFrom:    getEnv("SMTP_FROM", ""),
-		FrontendURL: getEnv("FRONTEND_URL", "https://finance.abhinavnair.dev"),
+		FrontendURL: frontendURL,
 	}
 }

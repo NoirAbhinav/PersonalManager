@@ -24,7 +24,11 @@ export async function checkAuthStatus(): Promise<AuthState> {
     })
 
     if (response.status === 401) {
-      // Session expired or invalid — clear the frontend cookie and force re-login
+      // Session expired or invalid — clear the frontend cookie and force re-login.
+      // Must include domain to match the cookie set by the backend.
+      const domain = window.location.hostname
+      document.cookie = `is_authenticated=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`
+      // Also clear without domain as fallback (e.g. local dev with no domain set)
       document.cookie = 'is_authenticated=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
       return { isAuthenticated: false }
     }
