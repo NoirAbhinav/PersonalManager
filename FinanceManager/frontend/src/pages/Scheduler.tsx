@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../components/Header'
 import { useScheduler, useJobRuns } from '../hooks/useScheduler'
-import { ScheduledJob, Schedule, JobConfig, createJob, updateJob } from '../api/scheduler'
+import { ScheduledJob, Schedule, JobConfig, createJob } from '../api/scheduler'
 
 import { Plus, Trash2, ChevronDown, ChevronUp, Power, CheckCircle, XCircle, Clock } from 'lucide-react'
 

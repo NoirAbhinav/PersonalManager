@@ -80,9 +80,9 @@ export async function GET() {
 
   const accounts: AccountConfig[] = [
     { token: personalToken, username: personalUser, label: 'personal', includeRepos: personalInclude },
-    ...(workToken && workUser
-      ? [{ token: workToken, username: workUser, label: 'work', includeRepos: workInclude }]
-      : []),
+    // ...(workToken && workUser
+    //   ? [{ token: workToken, username: workUser, label: 'work', includeRepos: workInclude }]
+    //   : []),
   ]
 
   const repoLists = await Promise.all(accounts.map(fetchAllRepos))

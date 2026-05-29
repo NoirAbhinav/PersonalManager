@@ -28,8 +28,7 @@ jobs:
       - name: Build Backend
         run: |
           go mod download
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server .
-
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./cmd/server
       - name: Copy Binary
         uses: appleboy/scp-action@v0.1.7
         with:
