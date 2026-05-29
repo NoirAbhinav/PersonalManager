@@ -62,14 +62,16 @@ jobs:
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
             mkdir -p /home/ubuntu/app
+            mkdir -p /home/ubuntu/app/internal/db/migrations
+            sudo systemctl stop financemanager
 
             cp /home/ubuntu/deploy/FinanceManager/backend/server /home/ubuntu/app/server
             cp /home/ubuntu/deploy/FinanceManager/backend/Makefile /home/ubuntu/app/Makefile
-            cp -r /home/ubuntu/deploy/FinanceManager/backend/internal/db/migrations /home/ubuntu/app/migrations
+            cp -r /home/ubuntu/deploy/FinanceManager/backend/internal/db/migrations/* /home/ubuntu/app/internal/db/migrations/
 
             chmod +x /home/ubuntu/app/server
-
+            cd /home/ubuntu/app/
             make migrate-up
 
-            sudo systemctl restart financemanager
+            sudo systemctl start financemanager
             sudo systemctl status financemanager --no-pager
