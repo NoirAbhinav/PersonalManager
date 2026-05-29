@@ -66,4 +66,17 @@ func registerRoutes(r *gin.Engine, deps *Dependencies) {
 	r.POST("/sync/gmail", deps.SyncHandler.SyncGmail)
 
 	r.GET("/sync/status", deps.SyncHandler.GetSyncStatus)
+
+	// Scheduler
+	r.GET("/scheduler/jobs", deps.SchedulerHandler.ListJobs)
+	r.POST("/scheduler/jobs", deps.SchedulerHandler.CreateJob)
+	r.PUT("/scheduler/jobs/:id", deps.SchedulerHandler.UpdateJob)
+	r.DELETE("/scheduler/jobs/:id", deps.SchedulerHandler.DeleteJob)
+	r.GET("/scheduler/jobs/:id/runs", deps.SchedulerHandler.GetJobRuns)
+
+	// Notifications
+	r.GET("/notifications", deps.NotificationHandler.List)
+	r.GET("/notifications/unread-count", deps.NotificationHandler.GetUnreadCount)
+	r.POST("/notifications/:id/read", deps.NotificationHandler.MarkRead)
+	r.POST("/notifications/read-all", deps.NotificationHandler.MarkAllRead)
 }

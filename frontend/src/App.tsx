@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Categories from './pages/Categories'
+import Scheduler from './pages/Scheduler'
 
 import { useAuth } from './hooks/useAuth'
 
@@ -33,6 +34,8 @@ function AppRoutes() {
         path="/categories"
         element={isAuthenticated ? <Categories /> : <Navigate to="/login" />}
       />
+      <Route path="/scheduler" element={<Scheduler />} />
+
       <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
     </Routes>
   )

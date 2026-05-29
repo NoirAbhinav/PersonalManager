@@ -6,7 +6,10 @@ import (
 	"github.com/NoirAbhinav/personalmanager/internal/config"
 	"github.com/NoirAbhinav/personalmanager/internal/db"
 	"github.com/NoirAbhinav/personalmanager/internal/db/sqlc"
+	email "github.com/NoirAbhinav/personalmanager/internal/notifications"
 	"github.com/NoirAbhinav/personalmanager/internal/repositories"
+	"github.com/NoirAbhinav/personalmanager/internal/scheduler"
+	"github.com/NoirAbhinav/personalmanager/internal/scheduler/runners"
 	"github.com/NoirAbhinav/personalmanager/internal/services"
 	"github.com/NoirAbhinav/personalmanager/internal/worker"
 )
@@ -14,12 +17,17 @@ import (
 type Dependencies struct {
 	Config *config.Config
 
-	AuthHandler        *api.AuthHandler
-	TransactionHandler *api.TransactionHandler
-	CategoryHandler    *api.CategoryHandler
-	SyncHandler        *api.SyncHandler
+	AuthHandler         *api.AuthHandler
+	TransactionHandler  *api.TransactionHandler
+	CategoryHandler     *api.CategoryHandler
+	SyncHandler         *api.SyncHandler
+	SchedulerHandler    *api.SchedulerHandler
+	NotificationHandler *api.NotificationHandler
 
-	SyncWorker *worker.SyncWorker
+	SyncWorker             *worker.SyncWorker
+	SchedulerEngine        *scheduler.Engine
+	ScheduledJobRepository *repositories.ScheduledJobRepository
+	NotificationRepository *repositories.NotificationRepository
 }
 
 func loadConfig() *config.Config {
@@ -98,6 +106,39 @@ func buildDependencies(cfg *config.Config) (*Dependencies, error) {
 	syncHandler := api.NewSyncHandler(
 		syncWorker,
 	)
+	// after existing repositories
+	scheduledJobRepository := repositories.NewScheduledJobRepository(queries)
+	notificationRepository := repositories.NewNotificationRepository(queries)
+
+	// email sender
+	emailSender := email.NewSender(
+		cfg.SMTPHost,
+		cfg.SMTPPort,
+		cfg.SMTPUser,
+		cfg.SMTPPass,
+		cfg.SMTPFrom,
+	)
+
+	// scheduler engine
+	schedulerEngine := scheduler.NewEngine(scheduledJobRepository, notificationRepository)
+
+	// runners
+	syncRunner := runners.NewSyncRunner(
+		oauthConfig,
+		oauthRepository,
+		userRepository,
+		transactionRepository,
+		syncStateRepository,
+		categorizationService,
+	)
+	digestRunner := runners.NewDigestRunner(transactionRepository, emailSender)
+	alertRunner := runners.NewAlertRunner(transactionRepository, notificationRepository, emailSender)
+
+	schedulerEngine.Register("sync", syncRunner)
+	schedulerEngine.Register("digest", digestRunner)
+	schedulerEngine.Register("alert", alertRunner)
+	schedulerHandler := api.NewSchedulerHandler(scheduledJobRepository, userRepository)
+	notificationHandler := api.NewNotificationHandler(notificationRepository, userRepository)
 
 	return &Dependencies{
 		Config: cfg,
@@ -107,6 +148,11 @@ func buildDependencies(cfg *config.Config) (*Dependencies, error) {
 		CategoryHandler:    categoryHandler,
 		SyncHandler:        syncHandler,
 
-		SyncWorker: syncWorker,
+		SyncWorker:             syncWorker,
+		SchedulerEngine:        schedulerEngine,
+		ScheduledJobRepository: scheduledJobRepository,
+		NotificationRepository: notificationRepository,
+		SchedulerHandler:       schedulerHandler,
+		NotificationHandler:    notificationHandler,
 	}, nil
 }

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     oci = {
       source  = "oracle/oci"
-      version = "~> 5.0"
+    version = "~> 7.0"
     }
   }
 }
@@ -114,8 +114,8 @@ resource "oci_core_instance" "portfolio_server" {
   shape               = "VM.Standard.A1.Flex"
 
   shape_config {
-    ocpus         = 2    # up to 4 total for free
-    memory_in_gbs = 4     # up to 24 total for free
+    ocpus         = 1  # up to 4 total for free
+    memory_in_gbs = 4    # up to 24 total for free
   }
 
   source_details {

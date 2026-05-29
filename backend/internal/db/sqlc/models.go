@@ -24,6 +24,25 @@ type CategoryRule struct {
 	CreatedAt  pgtype.Timestamp
 }
 
+type JobRun struct {
+	ID         pgtype.UUID
+	JobID      pgtype.UUID
+	StartedAt  pgtype.Timestamptz
+	FinishedAt pgtype.Timestamptz
+	Status     string
+	Message    pgtype.Text
+}
+
+type Notification struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	JobID     pgtype.UUID
+	Title     string
+	Body      string
+	Read      bool
+	CreatedAt pgtype.Timestamptz
+}
+
 type OauthIntegration struct {
 	ID           pgtype.UUID
 	Provider     string
@@ -35,6 +54,20 @@ type OauthIntegration struct {
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
 	UserID       pgtype.UUID
+}
+
+type ScheduledJob struct {
+	ID             pgtype.UUID
+	UserID         pgtype.UUID
+	Name           string
+	JobType        string
+	Enabled        bool
+	Schedule       []byte
+	JobConfig      []byte
+	LastRunAt      pgtype.Timestamptz
+	NextRunAt      pgtype.Timestamptz
+	OccurrencesRun int32
+	CreatedAt      pgtype.Timestamptz
 }
 
 type SyncState struct {

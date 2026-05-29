@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAX_RETRIES=50
+MAX_RETRIES=500
 WAIT_SECONDS=60
 
 echo "Starting terraform apply with retry (max $MAX_RETRIES attempts)..."
