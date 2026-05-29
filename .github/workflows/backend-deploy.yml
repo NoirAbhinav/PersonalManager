@@ -39,9 +39,10 @@ jobs:
           find . -path "*migrations*" -type d
       - name: Verify SCP Sources
         run: |
-          ls -lah FinanceManager/backend/server
-          ls -lah FinanceManager/backend/Makefile
-          find FinanceManager/backend/internal/db/migrations -type f
+          pwd
+          ls -lah ./server
+          ls -lah ./Makefile
+          find ./internal/db/migrations -type f
       - name: Copy Binary
         uses: appleboy/scp-action@v0.1.7
         with:
