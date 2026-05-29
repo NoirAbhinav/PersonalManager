@@ -36,6 +36,12 @@ jobs:
           pwd
           ls -la
           find . -name server -type f
+          find . -path "*migrations*" -type d
+      - name: Verify SCP Sources
+        run: |
+          ls -lah FinanceManager/backend/server
+          ls -lah FinanceManager/backend/Makefile
+          find FinanceManager/backend/internal/db/migrations -type f
       - name: Copy Binary
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -43,10 +49,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          source: |
-            PersonalManager/FinanceManager/backend/server
-            PersonalManager/FinanceManager/backend/Makefile
-            PersonalManager/FinanceManager/backend/internal/db/migrations
+          source: "FinanceManager/backend/*"
           target: "/home/ubuntu/deploy"
 
       - name: Restart Service
@@ -59,9 +62,9 @@ jobs:
           script: |
             mkdir -p /home/ubuntu/app
 
-            cp /home/ubuntu/deploy/PersonalManager/FinanceManager/backend/server /home/ubuntu/app/server
-            cp /home/ubuntu/deploy/PersonalManager/FinanceManager/backend/Makefile /home/ubuntu/app/Makefile
-            cp -r /home/ubuntu/deploy/PersonalManager/FinanceManager/backend/internal/db/migrations /home/ubuntu/app/migrations
+            cp /home/ubuntu/deploy/FinanceManager/backend/server /home/ubuntu/app/server
+            cp /home/ubuntu/deploy/FinanceManager/backend/Makefile /home/ubuntu/app/Makefile
+            cp -r /home/ubuntu/deploy/FinanceManager/backend/internal/db/migrations /home/ubuntu/app/migrations
 
             chmod +x /home/ubuntu/app/server
 
